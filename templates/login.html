@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In — SkillRise AI</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    body {
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+    }
+    .login-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 28px;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+      margin-bottom: 32px;
+    }
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      transition: border-color var(--transition);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .back-home {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .back-home:hover {
+      color: var(--text-primary);
+    }
+    .role-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: var(--bg-elevated);
+      padding: 4px;
+      border-radius: var(--radius-md);
+    }
+    .role-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+    }
+    .role-tab.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container animate-in">
+    <!-- Logo -->
+    <a href="/landing" class="login-logo">
+      <span>🚀</span> SkillRise AI
+    </a>
+
+    <!-- Card -->
+    <div class="login-card animate-scale">
+      <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--text-primary);">Welcome Back</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">Please sign in to continue learning.</p>
+
+      <!-- Role selection -->
+      <div class="role-tabs">
+        <div class="role-tab active" id="tab-student" onclick="setRole('student')">Student</div>
+        <div class="role-tab" id="tab-admin" onclick="setRole('admin')">Admin</div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <input type="hidden" id="role" value="student">
+        
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" class="form-control" placeholder="Enter username" required value="student">
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required value="student123">
+        </div>
+
+        <button type="submit" class="btn btn-cta w-full" id="loginBtn" style="margin-top: 8px;">
+          Sign In
+        </button>
+      </form>
+    </div>
+
+    <!-- Back to landing -->
+    <a href="/landing" class="back-home">
+      <i data-lucide="arrow-left" style="width:16px;height:16px"></i> Back to Landing Page
+    </a>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999"></div>
+
+  <script>
+    lucide.createIcons();
+
+    function showToast(message, type = 'info', duration = 3500) {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ' };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${icons[type] || icons.info}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    function setRole(role) {
+      document.getElementById('role').value = role;
+      document.getElementById('tab-student').classList.toggle('active', role === 'student');
+      document.getElementById('tab-admin').classList.toggle('active', role === 'admin');
+      
+      // Auto-fill defaults for quick demo
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      if (role === 'student') {
+        usernameInput.value = 'student';
+        passwordInput.value = 'student123';
+      } else {
+        usernameInput.value = 'admin';
+        passwordInput.value = 'admin123';
+      }
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.disabled = true;
+      loginBtn.innerText = "Signing in...";
+
+      const role = document.getElementById('role').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showToast('Login successful! Redirecting...', 'success');
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1000);
+        } else {
+          showToast(data.error || 'Invalid credentials', 'error');
+        }
+      } catch (err) {
+        showToast('Network error, please try again.', 'error');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerText = "Sign In";
+      }
+    }
+  </script>
+</body>
+</html>

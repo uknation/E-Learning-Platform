@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillRise AI</title>
+  <link rel="icon" type="image/png" href="/static/img/logo.png">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    body {
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .landing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 8%;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .landing-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+    .main-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px 8% 80px;
+      flex: 1;
+      width: 100%;
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+    .hero-title {
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 20px;
+      background: linear-gradient(270deg, #7C3AED, #A78BFA, #5B21B6, #7C3AED);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+      animation: gradientText 8s ease infinite;
+    }
+    @keyframes gradientText {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .hero-subtitle {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 540px;
+      margin-bottom: 0;
+    }
+    .hero-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 48px;
+      width: 100%;
+      text-align: left;
+    }
+    .hero-content {
+      flex: 1;
+      max-width: 580px;
+      text-align: left;
+    }
+    .landing-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(124, 58, 237, 0.15);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+      text-align: left;
+      transition: all var(--transition);
+    }
+    .landing-card:hover {
+      border-color: rgba(124, 58, 237, 0.35);
+      box-shadow: 0 15px 40px rgba(124, 58, 237, 0.22);
+      transform: translateY(-2px);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      transition: border-color var(--transition);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+      background: var(--bg-surface);
+    }
+    .footer {
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 24px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 15px 50px rgba(124, 58, 237, 0.25);
+      position: relative;
+      transition: all var(--transition);
+    }
+    .modal-card:hover {
+      border-color: rgba(124, 58, 237, 0.35);
+      box-shadow: 0 20px 60px rgba(124, 58, 237, 0.32);
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    /* Admin Leads Container */
+    .admin-container {
+      width: 100%;
+      display: none;
+    }
+    .leads-table-container {
+      background: var(--bg-card);
+      border: 1px solid rgba(124, 58, 237, 0.15);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+      margin-top: 24px;
+      width: 100%;
+      transition: all var(--transition);
+    }
+    .leads-table-container:hover {
+      border-color: rgba(124, 58, 237, 0.35);
+      box-shadow: 0 15px 40px rgba(124, 58, 237, 0.18);
+    }
+    .leads-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    .leads-table th {
+      background: var(--bg-elevated);
+      padding: 16px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+    .leads-table td {
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border);
+    }
+    .leads-table tr:hover td {
+      background: var(--bg-hover);
+    }
+    .goal-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+      .hero-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 32px;
+      }
+      .hero-content {
+        max-width: 100%;
+        text-align: center;
+      }
+      .hero-title { font-size: 32px; }
+      .hero-subtitle { font-size: 15px; }
+      .landing-card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- WebGL Fluid Background Canvas -->
+  <canvas id="fluid-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; display: block;"></canvas>
+
+  <!-- Header -->
+  <header class="landing-header">
+    <a href="/" class="landing-logo" style="display:flex;align-items:center;padding:0;background:none;-webkit-text-fill-color:initial;text-decoration:none;">
+      <img src="/static/img/logo.png" alt="SkillRise AI Logo" style="max-height:48px;width:auto;margin-right:-8px;margin-left:-12px;">
+      <span class="animated-gradient-text" style="font-size:22px;font-weight:800;">SkillRise AI</span>
+    </a>
+    <div id="header-buttons" style="display:flex;gap:12px">
+      <!-- Buttons Injected by JS based on login state -->
+      <button onclick="openLoginModal()" class="btn btn-primary btn-sm" id="loginHeaderBtn">Sign In</button>
+    </div>
+  </header>
+
+  <!-- Hero Content Section (Public View) -->
+  <main class="main-section animate-in" id="publicView">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">Master Skills. Conquer Placements.</h1>
+        <p class="hero-subtitle" style="margin-bottom: 0;">
+          SkillRise AI is your personalized platform for coding practice, aptitude training, and communication coaching.
+        </p>
+      </div>
+
+      <!-- Registration Card -->
+      <div class="landing-card animate-scale" style="flex-shrink: 0;">
+        <h3 style="font-size:22px;font-weight:800;margin-bottom:8px;" class="animated-gradient-text">Create an Account</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">Enter your details below to register and start practicing.</p>
+
+        <form id="leadForm" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" class="form-control" placeholder="Full Name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" class="form-control" placeholder="Email" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required oninput="checkPasswordStrength(this.value)">
+            <!-- Password Strength Feedback -->
+            <div id="password-strength-container" style="margin-top: 8px; font-size: 12px; display: none;">
+              <div style="height: 4px; width: 100%; background: var(--border); border-radius: 2px; margin-bottom: 8px; overflow: hidden;">
+                <div id="strength-bar" style="height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s;"></div>
+              </div>
+              <ul style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; color: var(--text-secondary);">
+                <li id="rule-length">❌ Min 8 characters</li>
+                <li id="rule-upper">❌ One uppercase letter</li>
+                <li id="rule-lower">❌ One lowercase letter</li>
+                <li id="rule-number">❌ One number</li>
+                <li id="rule-special">❌ One special character</li>
+              </ul>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">Confirm Password</label>
+            <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-cta w-full" id="submitBtn" style="margin-top:8px">
+            Create Account
+          </button>
+        </form>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; font-size:13px;">
+          <a href="javascript:void(0)" onclick="openLoginModal()" style="color:var(--primary); text-decoration:none; font-weight:600; transition:color var(--transition);">Already have an account? Sign In</a>
+          <a href="javascript:void(0)" onclick="forgotPassword()" style="color:var(--text-muted); text-decoration:none; transition:color var(--transition);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Forgot Password?</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Admin View (Only visible to authenticated admins on the same page) -->
+  <main class="main-section animate-in" id="adminView" style="display:none">
+    <div style="width:100%;text-align:center;margin-bottom:24px">
+      <h1 style="font-size: 28px; font-weight: 800;" class="animated-gradient-text">Admin Inquiries Panel</h1>
+      <p style="font-size: 14px; color: var(--text-secondary)">Manage waitlist signups stored in MongoDB Atlas.</p>
+    </div>
+
+    <!-- Table -->
+    <div class="leads-table-container">
+      <table class="leads-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Submitted At</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="leadsBody">
+          <!-- Injected Rows -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Login Modal overlay -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card animate-scale">
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 24px; text-align: center;" class="animated-gradient-text">Sign In</h2>
+
+      <!-- Role selection tabs -->
+      <div class="role-tabs" style="display:flex;gap:8px;margin-bottom:20px;background:var(--bg-elevated);padding:4px;border-radius:var(--radius-md)">
+        <div class="role-tab" id="tab-student" onclick="setRole('student')" style="flex:1;text-align:center;padding:8px;font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer;border-radius:var(--radius-sm);transition:all var(--transition);background:var(--bg-surface);box-shadow:var(--shadow-sm)">Student</div>
+        <div class="role-tab" id="tab-admin" onclick="setRole('admin')" style="flex:1;text-align:center;padding:8px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-radius:var(--radius-sm);transition:all var(--transition)">Admin</div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <input type="hidden" id="role" value="student">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-cta w-full" id="loginBtn" style="margin-top: 8px;">
+          Authenticate
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    &copy; 2026 SkillRise AI. All rights reserved.
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    // Check query params or session state on load
+    window.onload = async () => {
+      // Check query parameters
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('action') === 'login') {
+        openLoginModal();
+      }
+
+      // Check if session already holds an active admin session
+      try {
+        const response = await fetch('/api/admin/leads');
+        if (response.ok) {
+          showAdminView();
+        }
+      } catch (e) {}
+    };
+
+    function showToast(message, type = 'info', duration = 3500) {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ' };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${icons[type] || icons.info}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+
+    function setRole(role) {
+      document.getElementById('role').value = role;
+      
+      const tabStudent = document.getElementById('tab-student');
+      const tabAdmin = document.getElementById('tab-admin');
+      
+      if (role === 'student') {
+        tabStudent.style.background = 'var(--bg-surface)';
+        tabStudent.style.color = 'var(--text-primary)';
+        tabStudent.style.boxShadow = 'var(--shadow-sm)';
+        
+        tabAdmin.style.background = 'none';
+        tabAdmin.style.color = 'var(--text-secondary)';
+        tabAdmin.style.boxShadow = 'none';
+        
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+      } else {
+        tabAdmin.style.background = 'var(--bg-surface)';
+        tabAdmin.style.color = 'var(--text-primary)';
+        tabAdmin.style.boxShadow = 'var(--shadow-sm)';
+        
+        tabStudent.style.background = 'none';
+        tabStudent.style.color = 'var(--text-secondary)';
+        tabStudent.style.boxShadow = 'none';
+        
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+      }
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.disabled = true;
+      loginBtn.innerText = "Authenticating...";
+
+      const role = document.getElementById('role').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, username, password })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          showToast('Authentication successful!', 'success');
+          closeLoginModal();
+          
+          if (data.redirect === '/' || !data.redirect.includes('landing') && !data.redirect.includes('admin')) {
+            window.location.href = data.redirect;
+          } else {
+            showAdminView();
+          }
+        } else {
+          const data = await response.json();
+          showToast(data.error || 'Invalid credentials', 'error');
+        }
+      } catch (err) {
+        showToast('Network error, please try again.', 'error');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerText = "Authenticate";
+      }
+    }
+
+    function showAdminView() {
+      document.getElementById('publicView').style.display = 'none';
+      document.getElementById('adminView').style.display = 'flex';
+      document.getElementById('header-buttons').innerHTML = `
+        <span style="font-size:13px;color:var(--text-secondary);align-self:center">Welcome, Admin</span>
+        <button onclick="handleLogout()" class="btn btn-ghost btn-sm" style="color:var(--danger)">Logout</button>
+      `;
+      loadLeads();
+    }
+
+    function showPublicView() {
+      document.getElementById('publicView').style.display = 'flex';
+      document.getElementById('adminView').style.display = 'none';
+      document.getElementById('header-buttons').innerHTML = `
+        <button onclick="openLoginModal()" class="btn btn-primary btn-sm">Sign In</button>
+      `;
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        showToast('Logged out successfully', 'success');
+        showPublicView();
+      } catch (err) {
+        showToast('Logout failed', 'error');
+      }
+    }
+
+    function checkPasswordStrength(password) {
+      const container = document.getElementById('password-strength-container');
+      if (!password) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = 'block';
+
+      const rules = {
+        length: password.length >= 8,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[^A-Za-z0-9]/.test(password)
+      };
+
+      let passedCount = 0;
+      if (rules.length) passedCount++;
+      if (rules.upper) passedCount++;
+      if (rules.lower) passedCount++;
+      if (rules.number) passedCount++;
+      if (rules.special) passedCount++;
+
+      document.getElementById('rule-length').style.color = rules.length ? '#10B981' : 'var(--text-secondary)';
+      document.getElementById('rule-length').innerHTML = (rules.length ? '✅' : '❌') + ' Min 8 characters';
+      
+      document.getElementById('rule-upper').style.color = rules.upper ? '#10B981' : 'var(--text-secondary)';
+      document.getElementById('rule-upper').innerHTML = (rules.upper ? '✅' : '❌') + ' One uppercase letter';
+      
+      document.getElementById('rule-lower').style.color = rules.lower ? '#10B981' : 'var(--text-secondary)';
+      document.getElementById('rule-lower').innerHTML = (rules.lower ? '✅' : '❌') + ' One lowercase letter';
+      
+      document.getElementById('rule-number').style.color = rules.number ? '#10B981' : 'var(--text-secondary)';
+      document.getElementById('rule-number').innerHTML = (rules.number ? '✅' : '❌') + ' One number';
+      
+      document.getElementById('rule-special').style.color = rules.special ? '#10B981' : 'var(--text-secondary)';
+      document.getElementById('rule-special').innerHTML = (rules.special ? '✅' : '❌') + ' One special character';
+
+      const bar = document.getElementById('strength-bar');
+      const percentage = (passedCount / 5) * 100;
+      bar.style.width = `${percentage}%`;
+
+      if (passedCount <= 2) {
+        bar.style.backgroundColor = '#EF4444';
+      } else if (passedCount <= 4) {
+        bar.style.backgroundColor = '#F59E0B';
+      } else {
+        bar.style.backgroundColor = '#10B981';
+      }
+    }
+
+    async function handleRegister(event) {
+      event.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Registering...";
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('reg-password').value;
+      const confirm_password = document.getElementById('confirm-password').value;
+
+      const isStrong = password.length >= 8 && 
+                       /[A-Z]/.test(password) && 
+                       /[a-z]/.test(password) && 
+                       /[0-9]/.test(password) && 
+                       /[^A-Za-z0-9]/.test(password);
+
+      if (!isStrong) {
+        showToast('Password is too weak. Please satisfy all requirements.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Create Account";
+        return;
+      }
+
+      if (password !== confirm_password) {
+        showToast('Passwords do not match', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Create Account";
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, confirm_password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showToast('Account created successfully! Redirecting...', 'success');
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1000);
+        } else {
+          showToast(data.error || 'Registration failed', 'error');
+        }
+      } catch (err) {
+        showToast('Network error, please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Create Account";
+      }
+    }
+
+    function forgotPassword() {
+      const email = prompt("Enter your email address to reset your password:");
+      if (email) {
+        showToast(`Password recovery link has been sent to ${email}`, 'success');
+      }
+    }
+
+    async function loadLeads() {
+      try {
+        const response = await fetch('/api/admin/leads');
+        const leads = await response.json();
+        const leadsBody = document.getElementById('leadsBody');
+        
+        if (leads.length === 0) {
+          leadsBody.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">
+                No student accounts found in MongoDB Atlas.
+              </td>
+            </tr>`;
+          return;
+        }
+
+        leadsBody.innerHTML = leads.map(lead => {
+          const date = new Date(lead.created_at || new Date());
+          return `
+            <tr id="lead-${lead._id}">
+              <td style="font-weight:600">${escapeHtml(lead.name)}</td>
+              <td>${escapeHtml(lead.email)}</td>
+              <td style="font-family:var(--font-mono);font-size:13px">${escapeHtml(lead.password)}</td>
+              <td style="font-size:12px;color:var(--text-muted)">${date.toLocaleString('en-IN')}</td>
+              <td style="text-align:right">
+                <button onclick="deleteLead('${lead._id}')" class="btn btn-sm btn-ghost" style="color:var(--danger)">
+                  Delete
+                </button>
+              </td>
+            </tr>`;
+        }).join('');
+      } catch (err) {
+        showToast('Error loading leads from MongoDB: ' + err.message, 'error');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    async function deleteLead(leadId) {
+      if (!confirm('Are you sure you want to delete this lead?')) return;
+      
+      try {
+        const response = await fetch('/api/admin/delete-lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: leadId })
+        });
+        
+        if (response.ok) {
+          showToast('Lead deleted successfully', 'success');
+          const row = document.getElementById(`lead-${leadId}`);
+          if (row) row.remove();
+        } else {
+          showToast('Failed to delete lead', 'error');
+        }
+      } catch (err) {
+        showToast('Network error, please try again.', 'error');
+      }
+    }
+  </script>
+
+  <!-- WebGL Fluid Background Engine (Custom GLSL Simplex/Perlin Warped Refraction Shader) -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('fluid-canvas');
+      if (!canvas) return;
+
+      // WebGL contexts fallback list
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        console.warn("WebGL not supported by this device. Falling back to static gradient background.");
+        return;
+      }
+
+      // Vertex Shader Source
+      const vsSource = `
+        attribute vec2 position;
+        void main() {
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `;
+
+      // Fragment Shader Source (Warped FBM Holographic Ink/Refraction)
+      const fsSource = `
+        precision highp float;
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        uniform vec2 u_mouse;
+        uniform float u_mouse_velocity;
+
+        // Pseudo-random noise
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
+
+        // 2D Value Noise
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i + vec2(0.0,0.0)), hash(i + vec2(1.0,0.0)), f.x),
+                     mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), f.x), f.y);
+        }
+
+        // 4-octave Fractional Brownian Motion with rotation
+        float fbm(vec2 p) {
+          float v = 0.0;
+          float a = 0.5;
+          vec2 shift = vec2(100.0);
+          mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+          for (int i = 0; i < 4; ++i) {
+            v += a * noise(p);
+            p = rot * p * 2.0 + shift;
+            a *= 0.5;
+          }
+          return v;
+        }
+
+        // Domain Warping pattern function: f(p) = fbm( p + fbm( p + fbm(p) ) )
+        float pattern(in vec2 p, out vec2 q, out vec2 r, float time, vec2 mouse, float velocity) {
+          // Layer 1 warp (incorporates u_mouse for subtle parallax)
+          vec2 p1 = p + vec2(0.04 * mouse.x, 0.03 * mouse.y);
+          q.x = fbm(p1 + vec2(0.11 * time, 0.08 * time));
+          q.y = fbm(p1 + vec2(5.2, 1.3) + vec2(0.09 * time, 0.13 * time));
+          
+          // Magnetic attraction force towards cursor
+          vec2 dMouse = mouse - p;
+          float dLen = length(dMouse);
+          float force = exp(-dLen * 3.8); // Attraction radius
+          q += dMouse * force * (0.35 + 0.65 * velocity);
+
+          // Layer 2 warp using q
+          vec2 p2 = p + 4.0 * q + vec2(0.02 * mouse.y, -0.03 * mouse.x);
+          r.x = fbm(p2 + vec2(1.7, 9.2) + vec2(0.14 * time, 0.10 * time));
+          r.y = fbm(p2 + vec2(8.3, 2.8) + vec2(0.08 * time, 0.15 * time));
+
+          // Final warped FBM
+          return fbm(p + 4.0 * r);
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          vec2 p = uv;
+          // Aspect ratio correction
+          p.x *= u_resolution.x / u_resolution.y;
+
+          vec2 q, r;
+          // Scale coordinate frequency to match the fluid ribbons in the reference image
+          float f = pattern(p * 1.8, q, r, u_time * 0.28, u_mouse, u_mouse_velocity);
+
+          // Clean white base color (#F9FAFB equivalent)
+          vec3 baseColor = vec3(0.985, 0.985, 0.99);
+
+          // Fluid ribbon colors (purple, pink, cyan, blue, green, yellow, orange, red)
+          vec3 colPurple = vec3(0.68, 0.38, 0.98); // #af61ff
+          vec3 colPink   = vec3(0.98, 0.42, 0.72); // #fc6bb8
+          vec3 colCyan   = vec3(0.25, 0.82, 0.98); // #40d1fc
+          vec3 colBlue   = vec3(0.18, 0.48, 0.98); // #2e7aff
+          vec3 colGreen  = vec3(0.28, 0.88, 0.52); // #47e085
+          vec3 colYellow = vec3(0.98, 0.85, 0.28); // #fcd947
+          vec3 colOrange = vec3(0.98, 0.58, 0.22); // #fc9437
+          vec3 colRed    = vec3(0.98, 0.28, 0.35); // #fc4759
+
+          // Dynamically blend ribbons based on noise warps
+          float blend1 = smoothstep(0.15, 0.85, f);
+          float blend2 = smoothstep(0.1, 0.9, q.x);
+          float blend3 = smoothstep(0.2, 0.8, r.y);
+
+          vec3 inkColor = mix(
+            mix(mix(colPurple, colPink, blend1), mix(colCyan, colBlue, blend2), q.y),
+            mix(mix(colGreen, colYellow, blend1), mix(colOrange, colRed, blend2), r.x),
+            blend3
+          );
+
+          // Soft glow highlights around liquid ribbon folds
+          float foldHighlight = smoothstep(0.35, 0.6, f) * (1.0 - smoothstep(0.6, 0.85, f));
+          inkColor += vec3(1.0, 1.0, 1.0) * foldHighlight * 0.18;
+
+          // Render fluid colors inside thin channels, keeping the center and base clean
+          float inkStrength = smoothstep(0.18, 0.72, length(q - r) * 0.8);
+          inkStrength = clamp(inkStrength, 0.0, 0.82); // Limit saturation for readability
+
+          // Blend colors onto white base
+          vec3 finalColor = mix(baseColor, inkColor, inkStrength);
+
+          // Soft cursor glow indicator
+          float cGlow = exp(-length(u_mouse - p) * 16.0); // Concentrated cursor glow
+          finalColor = mix(finalColor, colPurple, cGlow * 0.12);
+
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `;
+
+      // Helper function to create shaders
+      function createShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error("Shader compiler error: ", gl.getShaderInfoLog(shader));
+          gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      }
+
+      // Initialize Shaders and Program
+      const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+      const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+      if (!vertexShader || !fragmentShader) return;
+
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error("Link program error: ", gl.getProgramInfoLog(program));
+        return;
+      }
+
+      // Look up attribute and uniform locations
+      const positionAttrLoc = gl.getAttribLocation(program, 'position');
+      const resolutionUniLoc = gl.getUniformLocation(program, 'u_resolution');
+      const timeUniLoc = gl.getUniformLocation(program, 'u_time');
+      const mouseUniLoc = gl.getUniformLocation(program, 'u_mouse');
+      const mouseVelocityUniLoc = gl.getUniformLocation(program, 'u_mouse_velocity');
+
+      // Quad geometry setup
+      const positionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,  1, -1, -1,  1,
+        -1,  1,  1, -1,  1,  1
+      ]), gl.STATIC_DRAW);
+
+      // Tracking variables
+      let startTime = Date.now();
+      let mouseX = 0.5;
+      let mouseY = 0.5;
+      let targetMouseX = 0.5;
+      let targetMouseY = 0.5;
+      let mouseVelocity = 0.0;
+      let lastMouseX = 0.5;
+      let lastMouseY = 0.5;
+
+      // Handle aspect-corrected mouse tracking
+      window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
+        targetMouseX = ((e.clientX - rect.left) / rect.height);
+        targetMouseY = 1.0 - ((e.clientY - rect.top) / rect.height);
+      });
+
+      // Handle touch coordinates fallback
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) {
+          const rect = canvas.getBoundingClientRect();
+          targetMouseX = ((e.touches[0].clientX - rect.left) / rect.height);
+          targetMouseY = 1.0 - ((e.touches[0].clientY - rect.top) / rect.height);
+        }
+      });
+
+      // Handle viewport resize
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Render Loop
+      function render() {
+        if (document.hidden) {
+          requestAnimationFrame(render);
+          return;
+        }
+
+        // Apply soft cursor attraction interpolation (magnetic inertia)
+        mouseX += (targetMouseX - mouseX) * 0.075;
+        mouseY += (targetMouseY - mouseY) * 0.075;
+
+        // Calculate and accumulate cursor movement velocity (turbulence)
+        const dx = mouseX - lastMouseX;
+        const dy = mouseY - lastMouseY;
+        const deltaDist = Math.sqrt(dx * dx + dy * dy);
+        mouseVelocity = mouseVelocity * 0.94 + deltaDist * 1.6;
+        mouseVelocity = Math.min(mouseVelocity, 1.8);
+
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+
+        // WebGL Draw Settings
+        gl.clearColor(0.985, 0.985, 0.99, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.useProgram(program);
+
+        // Bind attributes
+        gl.enableVertexAttribArray(positionAttrLoc);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(positionAttrLoc, 2, gl.FLOAT, false, 0, 0);
+
+        // Pass Uniforms
+        gl.uniform2f(resolutionUniLoc, canvas.width, canvas.height);
+        gl.uniform1f(timeUniLoc, (Date.now() - startTime) / 1000.0);
+        gl.uniform2f(mouseUniLoc, mouseX, mouseY);
+        gl.uniform1f(mouseVelocityUniLoc, mouseVelocity);
+
+        // Execute render quad call
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        requestAnimationFrame(render);
+      }
+
+      // Initialize rendering loop
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>

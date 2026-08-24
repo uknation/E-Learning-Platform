@@ -1,0 +1,124 @@
+# SkillRise AI — Smart E-Learning & Placement Preparation Platform
+
+SkillRise AI is an all-in-one AI-powered learning and career preparation platform designed to help students and developers master core technical skills, ace aptitude and reasoning assessments, improve communication, and track learning progress with personalized AI mentorship.
+
+---
+
+## 🚀 Features
+
+- **📊 Smart Dashboard**: Track overall preparation score, current streak, XP, weekly study hours, and recent activity.
+- **💻 Programming & Coding Arena**: Practice coding problems across Data Structures, Algorithms, Web Development, and more with integrated code runners and AI explanations.
+- **🧠 Aptitude & Reasoning Engine**: Practice quantitative aptitude, logical reasoning, and verbal ability with instant feedback and step-by-step solutions.
+- **📝 AI Notes Generator**: Automatically generate concise notes, flashcards, key summaries, and cheat sheets on any topic using Google Gemini AI.
+- **🎯 Dynamic Quiz Generator**: Create custom quizzes tailored to topic, difficulty, and question type with immediate AI evaluation.
+- **🗣️ Communication Coach**: AI-driven communication evaluations, grammar improvement, voice practice, and interview answer simulations.
+- **🗺️ Personalized Learning Roadmap**: AI-generated step-by-step roadmaps for full-stack development, machine learning, data engineering, and career goals.
+- **🤖 24/7 AI Career Coach**: Interactive conversational AI coach to answer technical queries, review resumes, and provide study guidance.
+- **⌨️ Typing Speed Test**: Real-time typing speed and accuracy testing with code and text challenges.
+- **🎨 AI Diagram / Visual Concept Generator**: Generate visual explanations and educational illustrations on demand.
+- **📈 Comprehensive Progress Analytics**: Visual breakdowns of skill levels, quiz histories, milestones, and achievements.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend**: Python 3, Flask, Flask-SQLAlchemy, Werkzeug, Flask-CORS
+- **Database**: SQLite (SQLAlchemy ORM)
+- **AI & LLM**: Google Gemini API (`google-generativeai`)
+- **Frontend**: HTML5, CSS3 (Modern Glassmorphic UI), JavaScript (Vanilla ES6+), FontAwesome
+
+---
+
+## 📦 Getting Started
+
+### Prerequisites
+
+- Python 3.9+ installed
+- A Google Gemini API Key ([Get one here](https://aistudio.google.com/))
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/kuldeepak8717-coder/E-learning-.git
+   cd E-learning-
+   ```
+
+2. **Create and activate a virtual environment:**
+   ```bash
+   # Windows (PowerShell)
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+
+   # macOS / Linux
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure Environment Variables:**
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Open `.env` and configure your API keys:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   FLASK_SECRET_KEY=your_secret_key_here
+   DATABASE_URL=sqlite:///skillrise.db
+   FLASK_DEBUG=True
+   ```
+
+5. **Run the application:**
+   ```bash
+   python app.py
+   ```
+   Open your browser and navigate to `http://localhost:5000`.
+
+---
+
+## 📁 Project Structure
+
+```
+skillrise-ai/
+├── app.py                  # Application entry point & Flask factory
+├── requirements.txt        # Python package dependencies
+├── .env.example            # Example environment configurations
+├── .gitignore              # Git ignore rules
+├── utils.py                # Helper utilities and decorators
+├── database/
+│   ├── __init__.py
+│   └── models.py           # SQLAlchemy database models
+├── routes/
+│   ├── dashboard.py        # Dashboard analytics & stats
+│   ├── programming.py      # Coding practice & execution
+│   ├── aptitude.py         # Quantitative aptitude tests
+│   ├── reasoning.py        # Logical reasoning tests
+│   ├── verbal.py           # Verbal ability exercises
+│   ├── quiz.py             # AI Quiz generator
+│   ├── notes.py            # AI Notes & study materials
+│   ├── communication.py    # AI Communication & interview coach
+│   ├── roadmap.py          # AI Roadmap generator
+│   ├── ai_coach.py         # 24/7 AI tutor & coach
+│   ├── typing_test.py      # Typing speed practice
+│   ├── image_gen.py        # Concept visualization
+│   ├── progress.py         # Detailed analytics & milestones
+│   └── profile.py          # User profile settings
+├── services/
+│   ├── gemini_service.py   # Gemini API integration service
+│   └── progress_service.py # User XP, streak, & stats tracking
+├── static/
+│   └── css/
+│       └── main.css        # Core styling & UI components
+└── templates/              # Jinja2 HTML templates
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
