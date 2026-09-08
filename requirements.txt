@@ -8,4 +8,6 @@ Werkzeug==3.0.3
 SQLAlchemy==2.0.31
 pymongo
 dnspython
+certifi
+gunicorn
 
