@@ -408,3 +408,215 @@ def generate_typing_text(mode: str) -> str:
     }
     prompt = prompts.get(mode, prompts['sentences'])
     return ask_gemini(prompt)
+
+
+def _fallback_ats_analysis(resume_text: str, job_description: str, target_role: str = '') -> dict:
+    """Intelligent fallback for ATS analysis when Gemini is unreachable."""
+    resume_lower = resume_text.lower()
+    jd_lower = job_description.lower()
+    
+    # Common tech & professional keywords
+    common_keywords = [
+        'python', 'javascript', 'typescript', 'react', 'node.js', 'sql', 'mongodb', 
+        'git', 'docker', 'aws', 'rest api', 'data structures', 'algorithms', 'html', 
+        'css', 'flask', 'django', 'fastapi', 'ci/cd', 'agile', 'scrum', 'problem solving',
+        'communication', 'teamwork', 'leadership', 'debugging', 'testing', 'system design'
+    ]
+    
+    jd_keywords = [kw for kw in common_keywords if kw in jd_lower]
+    if not jd_keywords:
+        jd_keywords = ['problem solving', 'git', 'communication', 'sql', 'python']
+        
+    matched = [kw for kw in jd_keywords if kw in resume_lower]
+    missing = [kw for kw in jd_keywords if kw not in resume_lower]
+    
+    ratio = len(matched) / max(len(jd_keywords), 1)
+    score = int(min(92, max(45, round(ratio * 85 + 15))))
+    
+    return {
+        "overall_score": score,
+        "score_breakdown": {
+            "keyword_match": int(round(ratio * 100)),
+            "skills_alignment": int(round(ratio * 90 + 10)),
+            "experience_impact": 72,
+            "ats_formatting_score": 85,
+            "brevity_clarity": 78
+        },
+        "target_role": target_role or "Software Developer / Engineer",
+        "summary": f"Your resume matches roughly {score}% of the target requirements. Adding identified missing technical keywords and quantifying achievements will increase ATS match potential.",
+        "matched_skills": [m.title() for m in matched],
+        "missing_hard_skills": [m.title() for m in missing[:5]],
+        "missing_soft_skills": ["Cross-functional Collaboration", "Stakeholder Communication", "Mentorship"],
+        "important_keywords": [
+            {"keyword": kw.title(), "status": "matched" if kw in matched else "missing", "importance": "High" if i < 3 else "Medium"}
+            for i, kw in enumerate(jd_keywords[:8])
+        ],
+        "bullet_point_improvements": [
+            {
+                "original": "Worked on developing features and fixing bugs in the application.",
+                "improved": "Engineered 5+ core user-facing features and resolved 20+ critical issues, improving overall application uptime by 18%.",
+                "why_it_works": "Adds specific quantification and demonstrates measurable impact using Google XYZ (Accomplished [X], measured by [Y], by doing [Z])."
+            },
+            {
+                "original": "Responsible for database management and API integration.",
+                "improved": "Architected RESTful endpoints and optimized database query execution times by 35% across high-volume traffic routes.",
+                "why_it_works": "Uses strong action verbs ('Architected', 'Optimized') and highlights performance metrics."
+            }
+        ],
+        "formatting_issues": [
+            {"type": "info", "message": "Ensure your resume uses standard font families (Inter, Arial, Calibri, Roboto) for optimal ATS text parsing."},
+            {"type": "warning" if len(resume_text.split()) < 200 else "pass", "message": "Resume length is adequate with standard chronological flow."}
+        ],
+        "skillrise_recommendations": [
+            {"module": "Programming Arena", "url": "/programming", "reason": "Practice algorithms & system problem-solving to strengthen your technical profile."},
+            {"module": "AI Notes Generator", "url": "/notes", "reason": "Generate concise revision sheets on missing tech stack concepts."},
+            {"module": "AI Coach", "url": "/coach", "reason": "Practice mock technical interview scenarios based on this Job Description."}
+        ]
+    }
+
+
+def analyze_ats_resume(resume_text: str, job_description: str, target_role: str = '') -> dict:
+    """
+    Perform deep ATS parsing, cross-matching against Job Description, 
+    and output actionable structured JSON analytics.
+    """
+    client = _get_client()
+    if not client:
+        return _fallback_ats_analysis(resume_text, job_description, target_role)
+
+    prompt = f"""You are an elite Applicant Tracking System (ATS) auditor and senior technical recruiter.
+Cross-match the Candidate Resume against the Target Job Description below.
+
+=== TARGET ROLE / INDUSTRY ===
+{target_role if target_role else 'Determine from Job Description'}
+
+=== JOB DESCRIPTION ===
+{job_description}
+
+=== CANDIDATE RESUME ===
+{resume_text}
+
+Analyze the resume rigorously and return ONLY valid JSON with this exact schema (no preamble, no backticks outside json):
+{{
+  "overall_score": 78,
+  "score_breakdown": {{
+    "keyword_match": 80,
+    "skills_alignment": 75,
+    "experience_impact": 70,
+    "ats_formatting_score": 90,
+    "brevity_clarity": 82
+  }},
+  "target_role": "Identified or provided role title",
+  "summary": "2-3 sentences concise executive verdict evaluating resume compatibility against the JD.",
+  "matched_skills": ["Skill1", "Skill2", "Skill3"],
+  "missing_hard_skills": ["MissingSkill1", "MissingSkill2"],
+  "missing_soft_skills": ["SoftSkill1", "SoftSkill2"],
+  "important_keywords": [
+    {{"keyword": "Keyword Name", "status": "matched", "importance": "High"}},
+    {{"keyword": "Missing Keyword", "status": "missing", "importance": "High"}}
+  ],
+  "bullet_point_improvements": [
+    {{
+      "original": "Sentence from resume that could be stronger",
+      "improved": "Transformed high-impact version using Action Verb + Task + Quantifiable Result / Metric",
+      "why_it_works": "Brief explanation why the rewrite scores higher in ATS and recruiter evaluations"
+    }}
+  ],
+  "formatting_issues": [
+    {{"type": "warning", "message": "Feedback regarding section structure, header readability, or formatting"}}
+  ],
+  "skillrise_recommendations": [
+    {{
+      "module": "Programming Arena",
+      "url": "/programming",
+      "reason": "Specific topic or skill to practice on SkillRise AI"
+    }},
+    {{
+      "module": "AI Notes Generator",
+      "url": "/notes",
+      "reason": "Topic to generate notes on"
+    }},
+    {{
+      "module": "AI Coach",
+      "url": "/coach",
+      "reason": "Practice interview queries related to the role"
+    }}
+  ]
+}}
+
+Ensure realistic ATS scores (0-100), extract actual skills from both texts, provide 2 to 3 practical bullet point rewrites from the resume, and list 2-3 SkillRise modules."""
+
+    try:
+        response = _generate_content_with_fallback(client, prompt)
+        cleaned = _clean_json(response.text)
+        data = json.loads(cleaned)
+        return data
+    except Exception as e:
+        print(f"Gemini ATS analysis error: {e}")
+        return _fallback_ats_analysis(resume_text, job_description, target_role)
+
+
+def improve_single_bullet(bullet_text: str, target_role: str = '') -> dict:
+    """Enhance a single resume bullet point with 3 high-impact variations."""
+    client = _get_client()
+    if not client:
+        return {
+            "original": bullet_text,
+            "variations": [
+                {
+                    "variant": f"Spearheaded {bullet_text.lower().strip('.')} resulting in a 25% increase in operational efficiency.",
+                    "formula": "Action Verb + Task + Metric"
+                },
+                {
+                    "variant": f"Engineered and deployed {bullet_text.lower().strip('.')}, reducing processing latency by 30%.",
+                    "formula": "Google XYZ Formula"
+                },
+                {
+                    "variant": f"Collaborated with cross-functional teams to deliver {bullet_text.lower().strip('.')}, improving user adoption by 40%.",
+                    "formula": "Leadership & Collaboration"
+                }
+            ],
+            "action_verbs": ["Spearheaded", "Architected", "Engineered", "Optimized", "Accelerated"]
+        }
+
+    prompt = f"""You are an executive resume writer.
+Enhance the following resume bullet point for a {target_role if target_role else 'technical/corporate'} role.
+
+Original bullet point: "{bullet_text}"
+
+Return ONLY valid JSON with this exact structure:
+{{
+  "original": "{bullet_text}",
+  "variations": [
+    {{
+      "variant": "High-impact rewrite focusing on metrics and results",
+      "formula": "Metric & Impact Focused (Google XYZ: Accomplished [X], measured by [Y], by doing [Z])"
+    }},
+    {{
+      "variant": "High-impact rewrite focusing on technical leadership and architecture",
+      "formula": "Technical Leadership & Scale"
+    }},
+    {{
+      "variant": "High-impact rewrite focusing on speed, efficiency, and optimization",
+      "formula": "Efficiency & Optimization"
+    }}
+  ],
+  "action_verbs": ["Verb1", "Verb2", "Verb3", "Verb4", "Verb5"]
+}}"""
+
+    try:
+        response = _generate_content_with_fallback(client, prompt)
+        cleaned = _clean_json(response.text)
+        return json.loads(cleaned)
+    except Exception as e:
+        return {
+            "original": bullet_text,
+            "variations": [
+                {
+                    "variant": f"Spearheaded {bullet_text.lower().strip('.')} resulting in 20%+ performance boost.",
+                    "formula": "Action + Metric"
+                }
+            ],
+            "action_verbs": ["Architected", "Engineered", "Optimized"]
+        }
+

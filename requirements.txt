@@ -10,4 +10,5 @@ pymongo
 dnspython
 certifi
 gunicorn
+pypdf
 

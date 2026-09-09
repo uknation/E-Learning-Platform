@@ -578,3 +578,31 @@ class CoachMessage(db.Model):
             'content': self.content,
             'date': self.date.isoformat() if isinstance(self.date, datetime) else str(self.date),
         }
+
+
+class ATSScan(db.Model):
+    __tablename__ = 'ats_scans'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    target_role = db.Column(db.String(100), default='')
+    score = db.Column(db.Integer, default=0)
+    matched_skills = db.Column(db.Text, default='[]')
+    missing_skills = db.Column(db.Text, default='[]')
+    analysis_json = db.Column(db.Text, default='{}')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def get_analysis(self):
+        return json.loads(self.analysis_json) if self.analysis_json else {}
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'target_role': self.target_role,
+            'score': self.score,
+            'matched_skills': json.loads(self.matched_skills) if self.matched_skills else [],
+            'missing_skills': json.loads(self.missing_skills) if self.missing_skills else [],
+            'analysis': self.get_analysis(),
+            'created_at': self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at),
+        }
+

@@ -82,6 +82,10 @@
       </a>
 
       <div class="nav-section-label" style="margin-top:12px">AI Tools</div>
+      <a class="nav-item {% if request.endpoint == 'ats.ats_page' %}active{% endif %}" href="/ats-matcher" id="nav-ats">
+        <span class="nav-icon"><i data-lucide="file-check-2"></i></span>
+        <span class="nav-label">ATS Resume Matcher</span>
+      </a>
       <a class="nav-item {% if request.endpoint == 'coach.coach_page' %}active{% endif %}" href="/coach" id="nav-coach">
         <span class="nav-icon"><i data-lucide="bot"></i></span>
         <span class="nav-label">AI Coach</span>

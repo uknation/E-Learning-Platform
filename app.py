@@ -59,6 +59,7 @@ def create_app():
     from routes.progress import progress_bp
     from routes.profile import profile_bp
     from routes.auth_admin import auth_admin_bp
+    from routes.ats_matcher import ats_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(notes_bp)
@@ -75,6 +76,7 @@ def create_app():
     app.register_blueprint(progress_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(auth_admin_bp)
+    app.register_blueprint(ats_bp)
 
     @app.context_processor
     def inject_user():

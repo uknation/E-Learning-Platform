@@ -1,0 +1,1103 @@
+{% extends "base.html" %}
+{% block title %}ATS Resume Matcher{% endblock %}
+{% block description %}AI-driven resume parser and ATS matcher. Cross-reference resumes against job descriptions, detect missing keywords, optimize bullet points, and ace placement screening.{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div>
+      <h1 class="page-title">🎯 ATS Resume Matcher & Optimizer</h1>
+      <p class="page-subtitle">Cross-match candidate resumes against target Job Descriptions, uncover keyword gaps, and generate high-impact bullet points.</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary btn-sm" onclick="loadSampleData()">
+        <i data-lucide="sparkles" style="width:14px;height:14px"></i> Try Sample Data
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleHistoryModal()">
+        <i data-lucide="history" style="width:14px;height:14px"></i> Past Audits
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Main Input Form ────────────────────────────── -->
+<div class="card mb-24 animate-in" id="inputSection">
+  <form id="atsForm" onsubmit="handleAnalyze(event)">
+    <div class="ats-grid">
+
+      <!-- Column 1: Candidate Resume -->
+      <div class="ats-col">
+        <div class="section-badge">
+          <i data-lucide="file-text" style="width:16px;height:16px"></i> 1. Candidate Resume
+        </div>
+
+        <div class="tabs" style="margin-bottom:12px">
+          <button type="button" class="tab active" id="tabUpload" onclick="setResumeInputMode('upload')">
+            <i data-lucide="upload-cloud" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Upload File (.pdf, .docx, .txt)
+          </button>
+          <button type="button" class="tab" id="tabPaste" onclick="setResumeInputMode('paste')">
+            <i data-lucide="edit-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Paste Text
+          </button>
+        </div>
+
+        <!-- File Upload Area -->
+        <div id="fileUploadContainer" class="dropzone" onclick="document.getElementById('resumeFileInput').click()">
+          <input type="file" id="resumeFileInput" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelected(event)" />
+          <div class="dropzone-content" id="dropzoneContent">
+            <div class="dropzone-icon">
+              <i data-lucide="file-up" style="width:36px;height:36px;color:var(--primary)"></i>
+            </div>
+            <p style="font-weight:600;font-size:14px;margin-bottom:4px;color:var(--text-primary)">
+              Click or drag & drop resume file here
+            </p>
+            <p style="font-size:12px;color:var(--text-muted)">
+              Supports PDF, DOCX, or TXT (Max 10MB)
+            </p>
+          </div>
+          <div id="fileSelectedBadge" style="display:none;align-items:center;justify-content:center;gap:10px;padding:12px;">
+            <i data-lucide="file-check" style="width:20px;height:20px;color:var(--success)"></i>
+            <span id="selectedFileName" style="font-weight:600;font-size:13px;color:var(--text-primary)"></span>
+            <button type="button" class="btn-icon" onclick="clearSelectedFile(event)" style="background:none;border:none;color:var(--danger);cursor:pointer;" title="Remove file">
+              <i data-lucide="x" style="width:16px;height:16px"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Text Paste Area (Hidden by default) -->
+        <div id="textPasteContainer" style="display:none;">
+          <textarea id="resumeTextInput" class="form-control" rows="9" placeholder="Paste full resume text here (Education, Experience, Skills, Projects, Certifications)..." style="font-size:13px;line-height:1.5;resize:vertical;"></textarea>
+        </div>
+      </div>
+
+      <!-- Column 2: Target Job Description -->
+      <div class="ats-col">
+        <div class="section-badge">
+          <i data-lucide="briefcase" style="width:16px;height:16px"></i> 2. Target Job Description
+        </div>
+
+        <!-- Quick Presets / Target Role Selection -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px">
+            Quick Fill Job Presets:
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px" id="presetChipsContainer">
+            {% for preset in presets %}
+            <button type="button" class="preset-chip" id="preset-btn-{{ preset.id }}" onclick="applyPreset('{{ preset.id }}')">
+              <i data-lucide="{{ preset.icon }}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:2px"></i> {{ preset.title }}
+            </button>
+            {% endfor %}
+          </div>
+          <input type="hidden" id="targetRoleInput" name="target_role" value="" />
+        </div>
+
+        <!-- JD Textarea -->
+        <div style="position:relative;">
+          <textarea id="jdInput" class="form-control" rows="9" placeholder="Paste the complete job description, requirements, responsibilities, and qualifications here..." required style="font-size:13px;line-height:1.5;resize:vertical;"></textarea>
+          <div id="jdWordCount" style="position:absolute;bottom:8px;right:12px;font-size:11px;color:var(--text-muted);pointer-events:none;">
+            0 words
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Submit Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)">
+        <i data-lucide="shield-check" style="width:16px;height:16px;color:var(--primary)"></i>
+        <span>AI parses resume structure, semantic skills, and keyword frequencies.</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
+        <button type="submit" class="btn btn-primary" id="analyzeBtn">
+          <i data-lucide="sparkles" style="width:16px;height:16px"></i> Analyze & Cross-Match
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ─── Loading State ──────────────────────────────── -->
+<div class="card mb-24 animate-in" id="loadingSection" style="display:none;text-align:center;padding:48px 24px;">
+  <div class="loading-spinner"></div>
+  <h3 style="font-size:18px;font-weight:700;margin-top:20px;color:var(--text-primary);" id="loadingStatusText">
+    Analyzing Resume & Job Description...
+  </h3>
+  <p style="font-size:13px;color:var(--text-secondary);max-width:460px;margin:8px auto 0;" id="loadingSubText">
+    Extracting entities, scanning keywords, evaluating ATS parseability, and calculating placement readiness.
+  </p>
+</div>
+
+<!-- ─── Results Dashboard ──────────────────────────── -->
+<div id="resultsSection" style="display:none;" class="animate-in">
+
+  <!-- Overview Row: Score Gauge + Breakdown -->
+  <div class="results-grid mb-24">
+    
+    <!-- Overall ATS Score Card -->
+    <div class="card score-hero-card">
+      <div class="card-header" style="margin-bottom:8px">
+        <div class="card-title">ATS Match Score</div>
+        <span class="badge" id="scoreBadge">Analyzing</span>
+      </div>
+      
+      <div class="score-circle-wrapper">
+        <svg class="score-circle-svg" viewBox="0 0 120 120">
+          <circle class="score-circle-bg" cx="60" cy="60" r="50"></circle>
+          <circle class="score-circle-bar" id="scoreCircleBar" cx="60" cy="60" r="50"></circle>
+        </svg>
+        <div class="score-circle-text">
+          <span class="score-number" id="overallScoreNum">0</span>
+          <span class="score-percent">%</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:8px;">
+        <div style="font-weight:700;font-size:15px;color:var(--text-primary)" id="matchLevelTitle">Good Match</div>
+        <div style="font-size:12px;color:var(--text-muted)" id="targetRoleDisplay">Software Developer</div>
+      </div>
+    </div>
+
+    <!-- Metric Breakdown -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Score Breakdown</div>
+        <span style="font-size:12px;color:var(--text-muted)">Evaluated across 5 ATS factors</span>
+      </div>
+
+      <div class="metrics-list">
+        <div class="metric-item">
+          <div class="metric-header">
+            <span>🔑 Keyword & Term Match</span>
+            <span id="metricKeywordVal" class="metric-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="metricKeywordBar" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-header">
+            <span>🛠️ Technical Skills Alignment</span>
+            <span id="metricSkillsVal" class="metric-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="metricSkillsBar" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-header">
+            <span>💼 Quantifiable Experience Impact</span>
+            <span id="metricExperienceVal" class="metric-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="metricExperienceBar" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-header">
+            <span>📄 ATS Formatting & Structure</span>
+            <span id="metricFormatVal" class="metric-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="metricFormatBar" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-item">
+          <div class="metric-header">
+            <span>⚡ Brevity & Action Clarity</span>
+            <span id="metricBrevityVal" class="metric-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="metricBrevityBar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Executive Summary -->
+  <div class="card mb-24">
+    <div class="card-header">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px">
+        <i data-lucide="sparkles" style="width:18px;height:18px;color:var(--primary)"></i> Executive Recruiter Verdict
+      </div>
+    </div>
+    <p id="executiveSummary" style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin:0;"></p>
+  </div>
+
+  <!-- Skill Cloud Matrix -->
+  <div class="results-grid mb-24">
+
+    <!-- Matched Skills -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" style="color:var(--success);display:flex;align-items:center;gap:6px;">
+          <i data-lucide="check-circle-2" style="width:18px;height:18px"></i> Matched Skills & Keywords
+        </div>
+        <span class="badge" id="matchedCountBadge" style="background:hsla(142, 71%, 45%, 0.15);color:var(--success)">0 Matched</span>
+      </div>
+      <div id="matchedSkillsList" class="skills-cloud"></div>
+    </div>
+
+    <!-- Missing Hard Skills -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" style="color:var(--danger);display:flex;align-items:center;gap:6px;">
+          <i data-lucide="alert-triangle" style="width:18px;height:18px"></i> Missing Technical Skills
+        </div>
+        <span class="badge" id="missingCountBadge" style="background:hsla(0, 84%, 60%, 0.15);color:var(--danger)">0 Missing</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">These critical skills are in the JD but not found in your resume:</p>
+      <div id="missingSkillsList" class="skills-cloud"></div>
+    </div>
+
+  </div>
+
+  <!-- Bullet Point Enhancer (Before & After) -->
+  <div class="card mb-24">
+    <div class="card-header">
+      <div>
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <i data-lucide="wand-2" style="width:18px;height:18px;color:var(--primary)"></i> AI Resume Bullet Point Enhancements
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:2px">
+          Transformed weak resume statements into high-impact Google XYZ bullet points (Accomplished [X] measured by [Y] by doing [Z]).
+        </p>
+      </div>
+    </div>
+
+    <div id="bulletImprovementsContainer" style="display:flex;flex-direction:column;gap:14px;margin-top:8px"></div>
+  </div>
+
+  <!-- SkillRise Learning Bridge & Formatting Audit -->
+  <div class="results-grid mb-24">
+
+    <!-- Formatting & ATS Hygiene -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" style="display:flex;align-items:center;gap:6px">
+          <i data-lucide="shield-alert" style="width:18px;height:18px;color:var(--warning)"></i> ATS Formatting & Parsing Audit
+        </div>
+      </div>
+      <div id="formattingIssuesList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- SkillRise Learning Recommendations -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" style="display:flex;align-items:center;gap:6px">
+          <i data-lucide="compass" style="width:18px;height:18px;color:var(--primary)"></i> Bridge Your Gaps on SkillRise AI
+        </div>
+      </div>
+      <div id="skillriseRecommendationsList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
+  </div>
+
+  <!-- Single Bullet Optimizer Interactive Widget -->
+  <div class="card mb-24" style="background:var(--bg-elevated);">
+    <div class="card-header">
+      <div>
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <i data-lucide="edit" style="width:18px;height:18px;color:var(--accent)"></i> Live Bullet Point Optimizer
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:2px">
+          Type or paste any single resume bullet point to generate 3 tailored ATS-ready versions instantly.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+      <input type="text" id="liveBulletInput" class="form-control" placeholder="e.g. Worked on backend API and fixed bugs in user login..." style="flex:1;min-width:260px;" />
+      <button class="btn btn-primary" onclick="optimizeSingleBullet()" id="optimizeBulletBtn">
+        <i data-lucide="zap" style="width:14px;height:14px"></i> Optimize Bullet
+      </button>
+    </div>
+
+    <div id="singleBulletResults" style="display:none;margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px">
+        Suggested Powerful Variations:
+      </div>
+      <div id="singleBulletVariationsList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── Past Audits Modal ──────────────────────────── -->
+<div class="modal-overlay" id="historyModal" onclick="closeHistoryModalOnBackdrop(event)">
+  <div class="modal-card" style="max-width:600px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-close" onclick="toggleHistoryModal()">&times;</button>
+    <h3 style="font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:4px;display:flex;align-items:center;gap:8px">
+      <i data-lucide="history" style="width:18px;height:18px;color:var(--primary)"></i> Past ATS Audits
+    </h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Review your recent resume score audits and improvements.</p>
+    
+    <div id="historyListContainer" style="display:flex;flex-direction:column;gap:10px">
+      <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:24px 0">Loading audit history...</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+  .ats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) {
+    .ats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .ats-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+
+  .preset-chip {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: var(--radius-full);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .preset-chip:hover {
+    background: var(--primary-glow);
+    border-color: var(--primary);
+    color: var(--primary-light);
+  }
+  .preset-chip.active {
+    background: var(--gradient-primary);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-primary);
+  }
+
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 32px 16px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg-elevated);
+    transition: all var(--transition);
+  }
+  .dropzone:hover {
+    border-color: var(--primary);
+    background: var(--bg-hover);
+  }
+
+  .dropzone-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--primary-glow);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Radial Score Gauge */
+  .score-hero-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .score-circle-wrapper {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 12px 0;
+  }
+
+  .score-circle-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .score-circle-bg {
+    fill: none;
+    stroke: var(--bg-elevated);
+    stroke-width: 10;
+  }
+
+  .score-circle-bar {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 314.159;
+    stroke-dashoffset: 314.159;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+  }
+
+  .score-circle-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+  }
+
+  .score-number {
+    font-size: 38px;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+
+  .score-percent {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-top: -12px;
+  }
+
+  /* Metrics List */
+  .metrics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    justify-content: center;
+    height: calc(100% - 40px);
+  }
+
+  .metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .metric-val {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* Skill Badges */
+  .skills-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .skill-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    transition: transform var(--transition);
+  }
+  .skill-pill:hover {
+    transform: translateY(-1px);
+  }
+
+  .skill-pill.matched {
+    background: hsla(142, 71%, 45%, 0.12);
+    color: var(--success);
+    border: 1px solid hsla(142, 71%, 45%, 0.3);
+  }
+
+  .skill-pill.missing {
+    background: hsla(0, 84%, 60%, 0.12);
+    color: var(--danger);
+    border: 1px solid hsla(0, 84%, 60%, 0.3);
+  }
+
+  .bullet-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    transition: all var(--transition);
+  }
+  .bullet-card:hover {
+    border-color: var(--primary);
+  }
+
+  .bullet-side {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .bullet-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .copy-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all var(--transition);
+  }
+  .copy-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+  }
+</style>
+
+<script>
+let selectedFile = null;
+let samplePresets = {{ presets | tojson }};
+
+// Word counter for JD
+document.getElementById('jdInput').addEventListener('input', function() {
+  const words = this.value.trim() ? this.value.trim().split(/\s+/).length : 0;
+  document.getElementById('jdWordCount').innerText = `${words} words`;
+});
+
+function setResumeInputMode(mode) {
+  const tabUpload = document.getElementById('tabUpload');
+  const tabPaste = document.getElementById('tabPaste');
+  const fileContainer = document.getElementById('fileUploadContainer');
+  const textContainer = document.getElementById('textPasteContainer');
+
+  if (mode === 'upload') {
+    tabUpload.classList.add('active');
+    tabPaste.classList.remove('active');
+    fileContainer.style.display = 'block';
+    textContainer.style.display = 'none';
+  } else {
+    tabPaste.classList.add('active');
+    tabUpload.classList.remove('active');
+    fileContainer.style.display = 'none';
+    textContainer.style.display = 'block';
+  }
+}
+
+function handleFileSelected(event) {
+  const file = event.target.files[0];
+  if (file) {
+    selectedFile = file;
+    document.getElementById('dropzoneContent').style.display = 'none';
+    const badge = document.getElementById('fileSelectedBadge');
+    badge.style.display = 'flex';
+    document.getElementById('selectedFileName').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  }
+}
+
+function clearSelectedFile(event) {
+  event.stopPropagation();
+  selectedFile = null;
+  document.getElementById('resumeFileInput').value = '';
+  document.getElementById('fileSelectedBadge').style.display = 'none';
+  document.getElementById('dropzoneContent').style.display = 'block';
+}
+
+function applyPreset(presetId) {
+  const preset = samplePresets.find(p => p.id === presetId);
+  if (preset) {
+    document.getElementById('jdInput').value = preset.jd;
+    document.getElementById('targetRoleInput').value = preset.title;
+    document.getElementById('jdInput').dispatchEvent(new Event('input'));
+
+    // Highlight active preset chip
+    document.querySelectorAll('.preset-chip').forEach(el => el.classList.remove('active'));
+    const activeBtn = document.getElementById(`preset-btn-${presetId}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    showToast(`Selected "${preset.title}" Job Description!`, 'info');
+  }
+}
+
+function loadSampleData() {
+  // Switch to paste mode and fill realistic resume
+  setResumeInputMode('paste');
+  document.getElementById('resumeTextInput').value = `ALEXANDER R. CHEN
+alex.chen@email.com | (555) 342-8901 | linkedin.com/in/alexchen | github.com/alexchen
+
+SUMMARY
+Passionate Full Stack Software Engineer with 2+ years of hands-on experience in building scalable web applications using Python, JavaScript, and modern database architectures. Experienced in building REST APIs, managing database schemas, and optimizing frontend performance.
+
+TECHNICAL SKILLS
+Languages: Python, JavaScript (ES6+), HTML5, CSS3, SQL
+Frameworks & Libraries: Flask, React.js, Node.js, Express, Bootstrap
+Databases & Tools: PostgreSQL, SQLite, MongoDB, Git, GitHub, Postman, Linux
+
+PROJECTS & WORK EXPERIENCE
+Full Stack Developer | NexaTech Solutions (2023 - Present)
+- Developed and maintained multiple customer-facing web portals using Python Flask and React.
+- Built 15+ REST API endpoints for user authentication, data management, and profile settings.
+- Worked on fixing application bugs and improved database query execution times.
+- Collaborated in an agile scrum team to deliver sprint milestones on time.
+
+E-Commerce Web Application (Independent Project)
+- Designed an online marketplace platform with product search, cart functionality, and order checkout.
+- Implemented responsive user interface using React and CSS Grid/Flexbox.
+- Integrated MongoDB database for product catalog storage and session tracking.
+
+EDUCATION
+B.S. in Computer Science | State University (2020 - 2024)`;
+
+  applyPreset('fullstack');
+  showToast('Loaded sample resume and Full Stack JD preset! Click "Analyze & Cross-Match" to evaluate.', 'success');
+}
+
+function resetForm() {
+  document.getElementById('atsForm').reset();
+  clearSelectedFile(new Event('click'));
+  setResumeInputMode('upload');
+  document.getElementById('targetRoleInput').value = '';
+  document.querySelectorAll('.preset-chip').forEach(el => el.classList.remove('active'));
+  document.getElementById('jdWordCount').innerText = '0 words';
+  document.getElementById('resultsSection').style.display = 'none';
+}
+
+async function handleAnalyze(event) {
+  event.preventDefault();
+  
+  const jdText = document.getElementById('jdInput').value.trim();
+  const targetRole = document.getElementById('targetRoleInput').value.trim();
+  const resumeText = document.getElementById('resumeTextInput').value.trim();
+
+  if (!selectedFile && !resumeText) {
+    showToast('Please upload a resume file (.pdf, .docx, .txt) or paste resume text.', 'warning');
+    return;
+  }
+
+  if (!jdText) {
+    showToast('Please enter a target Job Description.', 'warning');
+    return;
+  }
+
+  // Show loading
+  const inputSection = document.getElementById('inputSection');
+  const loadingSection = document.getElementById('loadingSection');
+  const resultsSection = document.getElementById('resultsSection');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+
+  analyzeBtn.disabled = true;
+  loadingSection.style.display = 'block';
+  resultsSection.style.display = 'none';
+
+  // Dynamic status messages
+  const statusTexts = [
+    "Extracting resume entities and syntax...",
+    "Scanning technical competencies & soft skills...",
+    "Evaluating semantic match against Job Description...",
+    "Analyzing ATS parsing rules & formatting checklist...",
+    "Formulating high-impact bullet improvements..."
+  ];
+  let msgIndex = 0;
+  const statusInterval = setInterval(() => {
+    msgIndex = (msgIndex + 1) % statusTexts.length;
+    document.getElementById('loadingStatusText').innerText = statusTexts[msgIndex];
+  }, 1800);
+
+  try {
+    let resultData;
+
+    // Use FormData if file is attached
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append('resume_file', selectedFile);
+      formData.append('job_description', jdText);
+      formData.append('target_role', targetRole);
+
+      const res = await fetch('/api/ats/analyze', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Analysis failed' }));
+        throw new Error(err.error || 'Server error');
+      }
+      resultData = await res.json();
+    } else {
+      // Use JSON
+      resultData = await apiCall('/api/ats/analyze', 'POST', {
+        resume_text: resumeText,
+        job_description: jdText,
+        target_role: targetRole
+      });
+    }
+
+    clearInterval(statusInterval);
+    loadingSection.style.display = 'none';
+    analyzeBtn.disabled = false;
+
+    if (resultData.status === 'success' && resultData.analysis) {
+      renderResults(resultData.analysis);
+      showToast('Resume audit complete! 🎯', 'success');
+      
+      // Update topbar XP if function exists
+      if (window.loadTopbarStats) loadTopbarStats();
+    } else {
+      throw new Error(resultData.error || 'Invalid response from analysis engine');
+    }
+
+  } catch (err) {
+    clearInterval(statusInterval);
+    loadingSection.style.display = 'none';
+    analyzeBtn.disabled = false;
+    showToast(err.message || 'Error running ATS analysis', 'error');
+  }
+}
+
+function renderResults(analysis) {
+  const resultsSection = document.getElementById('resultsSection');
+  resultsSection.style.display = 'block';
+
+  const score = parseInt(analysis.overall_score || 0);
+  document.getElementById('overallScoreNum').innerText = score;
+  document.getElementById('targetRoleDisplay').innerText = analysis.target_role || 'Target Position';
+
+  // Circular gauge animation
+  const circleBar = document.getElementById('scoreCircleBar');
+  const circumference = 2 * Math.PI * 50; // r = 50 -> 314.159
+  const offset = circumference - (score / 100) * circumference;
+  circleBar.style.strokeDashoffset = offset;
+
+  // Score badge & level coloring
+  const badgeEl = document.getElementById('scoreBadge');
+  const titleEl = document.getElementById('matchLevelTitle');
+
+  if (score >= 80) {
+    circleBar.style.stroke = 'var(--success)';
+    badgeEl.innerText = 'High Match 🎯';
+    badgeEl.style.background = 'hsla(142, 71%, 45%, 0.15)';
+    badgeEl.style.color = 'var(--success)';
+    titleEl.innerText = 'Strong ATS Compatibility';
+  } else if (score >= 60) {
+    circleBar.style.stroke = 'var(--primary)';
+    badgeEl.innerText = 'Good Match ✨';
+    badgeEl.style.background = 'var(--primary-glow)';
+    badgeEl.style.color = 'var(--primary-light)';
+    titleEl.innerText = 'Moderate Match — Ready for Tuning';
+  } else {
+    circleBar.style.stroke = 'var(--warning)';
+    badgeEl.innerText = 'Needs Optimization ⚠️';
+    badgeEl.style.background = 'hsla(38, 92%, 58%, 0.15)';
+    badgeEl.style.color = 'var(--warning)';
+    titleEl.innerText = 'Low Keyword Match';
+  }
+
+  // Score breakdown bars
+  const sb = analysis.score_breakdown || {};
+  setMetricBar('metricKeyword', sb.keyword_match || score);
+  setMetricBar('metricSkills', sb.skills_alignment || score);
+  setMetricBar('metricExperience', sb.experience_impact || 70);
+  setMetricBar('metricFormat', sb.ats_formatting_score || 85);
+  setMetricBar('metricBrevity', sb.brevity_clarity || 78);
+
+  // Executive summary
+  document.getElementById('executiveSummary').innerText = analysis.summary || 'Resume analyzed successfully.';
+
+  // Matched Skills
+  const matchedContainer = document.getElementById('matchedSkillsList');
+  const matchedSkills = analysis.matched_skills || [];
+  document.getElementById('matchedCountBadge').innerText = `${matchedSkills.length} Matched`;
+  
+  if (matchedSkills.length > 0) {
+    matchedContainer.innerHTML = matchedSkills.map(s => 
+      `<div class="skill-pill matched"><i data-lucide="check" style="width:12px;height:12px"></i> ${s}</div>`
+    ).join('');
+  } else {
+    matchedContainer.innerHTML = `<p style="font-size:13px;color:var(--text-muted)">No direct skill matches identified in resume.</p>`;
+  }
+
+  // Missing Skills
+  const missingContainer = document.getElementById('missingSkillsList');
+  const missingHard = analysis.missing_hard_skills || [];
+  const missingSoft = analysis.missing_soft_skills || [];
+  const allMissing = [...missingHard, ...missingSoft];
+  document.getElementById('missingCountBadge').innerText = `${allMissing.length} Missing`;
+
+  if (allMissing.length > 0) {
+    missingContainer.innerHTML = allMissing.map(s => 
+      `<div class="skill-pill missing"><i data-lucide="x" style="width:12px;height:12px"></i> ${s}</div>`
+    ).join('');
+  } else {
+    missingContainer.innerHTML = `<p style="font-size:13px;color:var(--success)">Great job! All primary JD skills are covered.</p>`;
+  }
+
+  // Bullet Point Enhancements
+  const bulletsContainer = document.getElementById('bulletImprovementsContainer');
+  const bullets = analysis.bullet_point_improvements || [];
+  if (bullets.length > 0) {
+    bulletsContainer.innerHTML = bullets.map((b, idx) => `
+      <div class="bullet-card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="bullet-grid">
+          <div class="bullet-side">
+            <span class="bullet-label" style="color:var(--text-muted)">Original Weak Bullet:</span>
+            <p style="font-size:13px;color:var(--text-secondary);margin:0;line-height:1.5;">"${b.original}"</p>
+          </div>
+          <div class="bullet-side" style="border-left:1px solid var(--border);padding-left:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="bullet-label" style="color:var(--primary-light)">✨ High-Impact ATS Version:</span>
+              <button class="copy-btn" onclick="copyText('${escapeHtml(b.improved)}')">
+                <i data-lucide="copy" style="width:12px;height:12px"></i> Copy
+              </button>
+            </div>
+            <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin:4px 0 0;line-height:1.5;">"${b.improved}"</p>
+          </div>
+        </div>
+        ${b.why_it_works ? `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);">💡 <strong>Why this scores higher:</strong> ${b.why_it_works}</div>` : ''}
+      </div>
+    `).join('');
+  } else {
+    bulletsContainer.innerHTML = `<p style="font-size:13px;color:var(--text-muted)">No specific bullet improvements needed.</p>`;
+  }
+
+  // Formatting checklist
+  const formatContainer = document.getElementById('formattingIssuesList');
+  const formatIssues = analysis.formatting_issues || [];
+  if (formatIssues.length > 0) {
+    formatContainer.innerHTML = formatIssues.map(fi => {
+      const isWarn = fi.type === 'warning';
+      const icon = isWarn ? 'alert-circle' : 'check-circle';
+      const color = isWarn ? 'var(--warning)' : 'var(--success)';
+      return `
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:var(--bg-elevated);border-radius:var(--radius-sm);font-size:13px;">
+          <i data-lucide="${icon}" style="width:16px;height:16px;color:${color};flex-shrink:0;margin-top:2px;"></i>
+          <span style="color:var(--text-secondary)">${fi.message}</span>
+        </div>
+      `;
+    }).join('');
+  } else {
+    formatContainer.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-elevated);border-radius:var(--radius-sm);font-size:13px;color:var(--success)">
+        <i data-lucide="check-circle" style="width:16px;height:16px"></i> Standard ATS section headers and formatting verified.
+      </div>
+    `;
+  }
+
+  // SkillRise Recommendations
+  const recContainer = document.getElementById('skillriseRecommendationsList');
+  const recs = analysis.skillrise_recommendations || [];
+  if (recs.length > 0) {
+    recContainer.innerHTML = recs.map(r => `
+      <a href="${r.url}" class="card" style="padding:12px 16px;text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg-elevated);">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${r.module}</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${r.reason}</div>
+        </div>
+        <i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--primary);flex-shrink:0"></i>
+      </a>
+    `).join('');
+  }
+
+  lucide.createIcons();
+
+  // Smooth scroll to results
+  resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setMetricBar(id, val) {
+  val = Math.max(0, Math.min(100, parseInt(val || 0)));
+  document.getElementById(`${id}Val`).innerText = `${val}%`;
+  document.getElementById(`${id}Bar`).style.width = `${val}%`;
+}
+
+async function optimizeSingleBullet() {
+  const input = document.getElementById('liveBulletInput');
+  const text = input.value.trim();
+  const role = document.getElementById('targetRoleInput').value.trim();
+  const btn = document.getElementById('optimizeBulletBtn');
+
+  if (!text) {
+    showToast('Please enter a bullet point to optimize.', 'warning');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<i data-lucide="loader-2" style="width:14px;height:14px;animation:spin 1s linear infinite"></i> Optimizing...`;
+  lucide.createIcons();
+
+  try {
+    const res = await apiCall('/api/ats/improve-bullet', 'POST', {
+      bullet_text: text,
+      target_role: role
+    });
+
+    const resultBox = document.getElementById('singleBulletResults');
+    const list = document.getElementById('singleBulletVariationsList');
+    resultBox.style.display = 'block';
+
+    const variations = res.result.variations || [];
+    list.innerHTML = variations.map(v => `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--primary-light);text-transform:uppercase;">${v.formula}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-top:3px;">"${v.variant}"</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('${escapeHtml(v.variant)}')">
+          <i data-lucide="copy" style="width:12px;height:12px"></i> Copy
+        </button>
+      </div>
+    `).join('');
+
+    lucide.createIcons();
+    showToast('Bullet point variations generated!', 'success');
+  } catch (err) {
+    showToast('Could not optimize bullet point.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i data-lucide="zap" style="width:14px;height:14px"></i> Optimize Bullet`;
+    lucide.createIcons();
+  }
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copied to clipboard! 📋', 'success');
+  }).catch(() => {
+    showToast('Could not copy text.', 'error');
+  });
+}
+
+function escapeHtml(str) {
+  return (str || '')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;');
+}
+
+async function toggleHistoryModal() {
+  const modal = document.getElementById('historyModal');
+  const isActive = modal.classList.toggle('active');
+  if (isActive) {
+    loadAuditHistory();
+  }
+}
+
+function closeHistoryModalOnBackdrop(e) {
+  if (e.target.id === 'historyModal') {
+    document.getElementById('historyModal').classList.remove('active');
+  }
+}
+
+async function loadAuditHistory() {
+  const container = document.getElementById('historyListContainer');
+  try {
+    const res = await apiCall('/api/ats/history');
+    const scans = res.scans || [];
+    if (scans.length === 0) {
+      container.innerHTML = `<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:24px 0">No past ATS audits found. Run your first audit above!</p>`;
+      return;
+    }
+
+    container.innerHTML = scans.map(s => {
+      const scoreColor = s.score >= 80 ? 'var(--success)' : (s.score >= 60 ? 'var(--primary-light)' : 'var(--warning)');
+      const dateStr = s.created_at ? new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';
+      return `
+        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${s.target_role || 'General Role'}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${dateStr} • ${s.matched_skills.length} matched skills</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:20px;font-weight:900;color:${scoreColor};">${s.score}%</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    lucide.createIcons();
+  } catch (err) {
+    container.innerHTML = `<p style="font-size:13px;color:var(--danger);text-align:center;padding:16px 0">Could not load history.</p>`;
+  }
+}
+</script>
+{% endblock %}
