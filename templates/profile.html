@@ -1,103 +1,897 @@
 {% extends "base.html" %}
-{% block title %}Profile{% endblock %}
+{% block title %}Student Profile{% endblock %}
+{% block description %}Your personalized learning identity, streak records, level progression, and verified skill badges.{% endblock %}
 
 {% block content %}
-<div class="page-header animate-in">
-  <h1 class="page-title" id="page-profile-title">👤 <span class="animated-gradient-text" id="profile-title-text">{{ current_user.name if current_user else 'Student' }}'s Profile</span></h1>
-  <p class="page-subtitle">Your learning identity, achievements and settings</p>
-</div>
+<div class="profile-container animate-in">
 
-<div class="grid-2" style="gap:20px">
-  <!-- Profile Card -->
-  <div>
-    <div class="card mb-16 animate-in" style="text-align:center">
-      <div style="font-size:72px;margin-bottom:8px" id="profile-avatar">🎓</div>
-      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        {% for emoji in ['🎓','🚀','⭐','🧠','💻','🌟','🔥','🏆'] %}
-        <button onclick="setAvatar('{{ emoji }}')"
-                style="font-size:22px;padding:4px 6px;background:var(--bg-elevated);
-                       border-radius:var(--radius-sm);cursor:pointer;border:2px solid transparent;transition:all 0.2s"
-                class="avatar-btn">{{ emoji }}</button>
-        {% endfor %}
-      </div>
-      <div style="font-size:24px;font-weight:800;color:var(--text-primary)" id="profile-name">Student</div>
-      <div style="font-size:14px;color:var(--text-secondary);margin-top:4px" id="profile-goal">Loading...</div>
-      <div class="flex items-center justify-center gap-12 mt-16">
-        <div style="text-align:center">
-          <div style="font-size:22px;font-weight:700;color:var(--warning)" id="profile-streak">0</div>
-          <div style="font-size:12px;color:var(--text-muted)">🔥 Streak</div>
+  <!-- ─── 1. Profile Header Hero ────────────────────────── -->
+  <div class="card profile-hero-card mb-24">
+    <div class="profile-hero-content">
+      <div class="profile-identity">
+        <!-- Avatar Wrapper -->
+        <div class="avatar-wrapper" onclick="focusAvatarSelector()" title="Click to choose avatar">
+          <div class="avatar-circle" id="profile-avatar">{{ current_user.avatar if current_user and current_user.avatar else '🎓' }}</div>
+          <div class="avatar-edit-badge" title="Change Avatar">
+            <i data-lucide="camera" style="width:12px;height:12px"></i>
+          </div>
         </div>
-        <div style="text-align:center">
-          <div style="font-size:22px;font-weight:700;color:var(--primary-light)" id="profile-xp">0</div>
-          <div style="font-size:12px;color:var(--text-muted)">⚡ XP</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-size:22px;font-weight:700;color:var(--accent)" id="profile-level">1</div>
-          <div style="font-size:12px;color:var(--text-muted)">🏅 Level</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-size:22px;font-weight:700;color:var(--success)" id="profile-day">1</div>
-          <div style="font-size:12px;color:var(--text-muted)">📅 Day</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Edit Profile -->
-    <div class="card animate-in" style="animation-delay:0.1s">
-      <div class="card-title mb-16">✏️ Edit Profile</div>
-      <div class="form-group">
-        <label class="form-label">Your Name</label>
-        <input type="text" class="form-control" id="edit-name" placeholder="Enter your name" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Your Goal</label>
-        <input type="text" class="form-control" id="edit-goal" placeholder="What do you want to achieve?" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Daily Target (minutes)</label>
-        <div class="toggle-group">
-          <button class="toggle-btn" onclick="setTarget(30,this)">30</button>
-          <button class="toggle-btn active" onclick="setTarget(60,this)">60</button>
-          <button class="toggle-btn" onclick="setTarget(90,this)">90</button>
-          <button class="toggle-btn" onclick="setTarget(120,this)">120</button>
+        <!-- Name & Details -->
+        <div class="profile-details">
+          <div class="profile-title-row">
+            <h1 class="profile-name" id="profile-name">{{ current_user.name if current_user else 'Student' }}</h1>
+            <span class="status-pill active">
+              <span class="status-dot"></span> Active Learner
+            </span>
+          </div>
+          <p class="profile-goal-text" id="profile-goal">
+            {{ current_user.goal if current_user and current_user.goal else 'Set your personal learning goal below' }}
+          </p>
+          <div class="profile-meta-tags">
+            <span class="meta-tag">
+              <i data-lucide="calendar" style="width:13px;height:13px"></i>
+              <span>Day <strong id="profile-day">{{ current_user.day_number if current_user else 1 }}</strong> Journey</span>
+            </span>
+            <span class="meta-tag">
+              <i data-lucide="shield" style="width:13px;height:13px"></i>
+              <span id="profile-role-tag">Level {{ current_user.level if current_user else 1 }} • {{ current_user.current_level if current_user else 'Beginner' }}</span>
+            </span>
+          </div>
         </div>
       </div>
-      <button class="btn btn-primary btn-full" onclick="saveProfile()">💾 Save Changes</button>
-    </div>
 
-    <!-- Level Progress -->
-    <div class="card mt-16 animate-in" style="animation-delay:0.15s">
-      <div class="card-title mb-16">⚡ Level Progress</div>
-      <div id="level-progress-display">
-        <div class="loading-overlay"><div class="spinner"></div></div>
+      <!-- Action Buttons -->
+      <div class="profile-hero-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="scrollToEditProfile()">
+          <i data-lucide="pencil" style="width:14px;height:14px"></i> Edit Profile
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Badges -->
-  <div>
-    <div class="card animate-in" style="animation-delay:0.2s">
-      <div class="card-title mb-16">🏆 Achievements & Badges</div>
-      <div id="badges-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-        <div class="loading-overlay" style="grid-column:1/-1"><div class="spinner"></div></div>
+  <!-- ─── 2. Quick Stats Row ────────────────────────────── -->
+  <div class="stats-row mb-24">
+    
+    <!-- Stat 1: Current Streak -->
+    <div class="stat-card-compact">
+      <div class="stat-icon-bubble amber">
+        <i data-lucide="flame" style="width:20px;height:20px"></i>
+      </div>
+      <div class="stat-meta">
+        <div class="stat-val" id="profile-streak">{{ current_user.streak if current_user else 0 }}</div>
+        <div class="stat-lbl">Day Streak</div>
       </div>
     </div>
+
+    <!-- Stat 2: Total XP -->
+    <div class="stat-card-compact">
+      <div class="stat-icon-bubble purple">
+        <i data-lucide="zap" style="width:20px;height:20px"></i>
+      </div>
+      <div class="stat-meta">
+        <div class="stat-val" id="profile-xp">{{ current_user.xp if current_user else 0 }}</div>
+        <div class="stat-lbl">Total XP</div>
+      </div>
+    </div>
+
+    <!-- Stat 3: Current Level -->
+    <div class="stat-card-compact">
+      <div class="stat-icon-bubble blue">
+        <i data-lucide="award" style="width:20px;height:20px"></i>
+      </div>
+      <div class="stat-meta">
+        <div class="stat-val" id="profile-level">Level {{ current_user.level if current_user else 1 }}</div>
+        <div class="stat-lbl" id="profile-level-name">{{ current_user.current_level if current_user else 'Beginner' }}</div>
+      </div>
+    </div>
+
+    <!-- Stat 4: Daily Goal -->
+    <div class="stat-card-compact">
+      <div class="stat-icon-bubble green">
+        <i data-lucide="target" style="width:20px;height:20px"></i>
+      </div>
+      <div class="stat-meta">
+        <div class="stat-val" id="profile-target-display">{{ current_user.daily_target_minutes if current_user else 60 }}m</div>
+        <div class="stat-lbl">Daily Target</div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- ─── 3. Main Dashboard Grid ────────────────────────── -->
+  <div class="profile-dashboard-grid">
+
+    <!-- LEFT COLUMN: Progress & Profile Settings -->
+    <div class="profile-col-left">
+
+      <!-- Learning Progress Card -->
+      <div class="card profile-card mb-24 animate-in">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="icon-bubble primary">
+              <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+            </div>
+            <span class="card-title">Level Progression</span>
+          </div>
+          <span class="badge badge-primary" id="progress-level-badge">
+            Level {{ current_user.level if current_user else 1 }}
+          </span>
+        </div>
+
+        <div id="level-progress-display">
+          <div class="loading-overlay" style="padding:28px 0;"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Edit Profile Card -->
+      <div class="card profile-card animate-in" id="editProfileSection" style="animation-delay:0.1s">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="icon-bubble secondary">
+              <i data-lucide="settings" style="width:16px;height:16px"></i>
+            </div>
+            <span class="card-title">Profile Settings</span>
+          </div>
+        </div>
+
+        <form id="editProfileForm" onsubmit="handleSaveProfile(event)">
+          <!-- Avatar Picker -->
+          <div class="form-group mb-16">
+            <label class="form-label" id="avatarPickerLabel">
+              Choose Avatar
+            </label>
+            <div class="avatar-picker-grid" id="avatarGrid">
+              {% for emoji in ['🎓','🚀','⭐','🧠','💻','🌟','🔥','🏆','🎯','⚡','💡','📚'] %}
+              <button type="button" class="avatar-picker-btn {% if loop.first %}active{% endif %}" onclick="setAvatar('{{ emoji }}')" title="Select {{ emoji }}">
+                {{ emoji }}
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Full Name -->
+          <div class="form-group mb-16">
+            <label class="form-label" for="edit-name">Your Full Name</label>
+            <div class="input-icon-wrap">
+              <i data-lucide="user" class="input-icon"></i>
+              <input type="text" class="form-control with-icon" id="edit-name" placeholder="Enter your full name" required maxlength="100" />
+            </div>
+          </div>
+
+          <!-- Goal -->
+          <div class="form-group mb-16">
+            <label class="form-label" for="edit-goal">Primary Goal</label>
+            <div class="input-icon-wrap">
+              <i data-lucide="compass" class="input-icon"></i>
+              <input type="text" class="form-control with-icon" id="edit-goal" placeholder="e.g. Become job-ready in 90 days" maxlength="200" />
+            </div>
+          </div>
+
+          <!-- Daily Target -->
+          <div class="form-group mb-20">
+            <label class="form-label">Daily Study Target</label>
+            <div class="target-btn-group">
+              <button type="button" class="target-btn" onclick="setTarget(30, this)" data-target="30">
+                <i data-lucide="clock" style="width:13px;height:13px"></i> 30 min
+              </button>
+              <button type="button" class="target-btn active" onclick="setTarget(60, this)" data-target="60">
+                <i data-lucide="clock" style="width:13px;height:13px"></i> 60 min
+              </button>
+              <button type="button" class="target-btn" onclick="setTarget(90, this)" data-target="90">
+                <i data-lucide="clock" style="width:13px;height:13px"></i> 90 min
+              </button>
+              <button type="button" class="target-btn" onclick="setTarget(120, this)" data-target="120">
+                <i data-lucide="clock" style="width:13px;height:13px"></i> 120 min
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-full save-profile-btn" id="saveProfileBtn">
+            <i data-lucide="save" style="width:16px;height:16px"></i> Save Changes
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Achievements & Badges -->
+    <div class="profile-col-right">
+      <div class="card profile-card animate-in" style="animation-delay:0.15s; height:100%; display:flex; flex-direction:column;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="icon-bubble warning">
+              <i data-lucide="trophy" style="width:16px;height:16px"></i>
+            </div>
+            <div>
+              <span class="card-title">Achievements & Badges</span>
+            </div>
+          </div>
+          <span class="badge-custom badge-success" id="badges-unlocked-count">0 / 10 Unlocked</span>
+        </div>
+
+        <p class="section-subtitle-text mb-16">
+          Earn verified skill badges by maintaining streaks, scoring high on quizzes, and mastering technical topics.
+        </p>
+
+        <!-- Badges Grid -->
+        <div id="badges-grid" class="badges-grid-container">
+          <div class="loading-overlay" style="grid-column:1/-1;padding:48px 0;"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<style>
+  /* ===================================================
+     Student Profile SaaS Design System
+     =================================================== */
+
+  .profile-container {
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  /* ── 1. Hero Identity Card ──────────────────────── */
+  .profile-hero-card {
+    padding: 24px 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  }
+
+  .profile-hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .avatar-wrapper {
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform var(--transition);
+  }
+  .avatar-wrapper:hover {
+    transform: scale(1.04);
+  }
+
+  .avatar-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    border: 3px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: var(--shadow-sm);
+    user-select: none;
+  }
+
+  .avatar-edit-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .profile-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .profile-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+  }
+
+  .status-pill.active {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+    background: hsla(142, 71%, 45%, 0.12);
+    color: var(--success);
+    border: 1px solid hsla(142, 71%, 45%, 0.28);
+    letter-spacing: 0.3px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+  }
+
+  .profile-goal-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .profile-meta-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--bg-elevated);
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .profile-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ── 2. Quick Stats Row ─────────────────────────── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card-compact {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: all var(--transition);
+  }
+  .stat-card-compact:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-light);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .stat-icon-bubble {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .stat-icon-bubble.amber {
+    background: hsla(38, 92%, 58%, 0.14);
+    color: var(--warning);
+  }
+  .stat-icon-bubble.purple {
+    background: var(--primary-glow);
+    color: var(--primary);
+  }
+  .stat-icon-bubble.blue {
+    background: hsla(210, 84%, 60%, 0.14);
+    color: hsl(210, 84%, 60%);
+  }
+  .stat-icon-bubble.green {
+    background: hsla(142, 71%, 45%, 0.12);
+    color: var(--success);
+  }
+
+  .stat-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .stat-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+  }
+
+  .stat-lbl {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── 3. Main Dashboard Grid ─────────────────────── */
+  .profile-dashboard-grid {
+    display: grid;
+    grid-template-columns: 440px 1fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  .profile-col-left {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-col-right {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+    transition: all var(--transition);
+  }
+  .profile-card:hover {
+    border-color: rgba(124, 58, 237, 0.25);
+  }
+
+  .card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .icon-bubble {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .icon-bubble.primary {
+    background: var(--primary-glow);
+    color: var(--primary);
+  }
+  .icon-bubble.secondary {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+  }
+  .icon-bubble.warning {
+    background: hsla(38, 92%, 58%, 0.14);
+    color: var(--warning);
+  }
+  .icon-bubble.success {
+    background: hsla(142, 71%, 45%, 0.12);
+    color: var(--success);
+  }
+
+  .section-subtitle-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* ── 4. Level Progression Card ──────────────────── */
+  .level-hero-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, hsla(259, 84%, 58%, 0.08), hsla(270, 95%, 75%, 0.04));
+    border: 1px solid hsla(259, 84%, 58%, 0.2);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+  }
+
+  .level-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .level-badge-pill {
+    padding: 6px 12px;
+    background: var(--gradient-primary);
+    color: white;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px var(--primary-glow);
+  }
+
+  .level-title-large {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .level-sub-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .level-xp-stat {
+    text-align: right;
+  }
+  .level-xp-num {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary-light);
+    line-height: 1.2;
+  }
+  .level-xp-lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .progress-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar-custom {
+    height: 10px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+
+  .progress-fill-custom {
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .level-next-tip {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* ── 5. Edit Profile Form & Controls ────────────── */
+  .avatar-picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .avatar-picker-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border: 2px solid transparent;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    user-select: none;
+  }
+  .avatar-picker-btn:hover {
+    background: var(--bg-hover);
+    transform: translateY(-1px);
+  }
+  .avatar-picker-btn.active {
+    background: var(--primary-glow);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+  }
+
+  .input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .form-control.with-icon {
+    padding-left: 40px;
+  }
+
+  .target-btn-group {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .target-btn {
+    padding: 9px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-family: var(--font);
+    white-space: nowrap;
+  }
+  .target-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-light);
+    background: var(--bg-hover);
+  }
+  .target-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px var(--primary-glow);
+  }
+
+  .save-profile-btn {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 20px;
+    margin-top: 8px;
+  }
+
+  /* ── 6. Badges Grid & Cards ─────────────────────── */
+  .badges-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+    flex: 1;
+    align-content: flex-start;
+  }
+
+  .badge-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    transition: all var(--transition);
+    position: relative;
+  }
+
+  .badge-card.unlocked {
+    border-color: hsla(259, 84%, 58%, 0.35);
+    background: linear-gradient(145deg, var(--bg-surface), var(--bg-elevated));
+  }
+  .badge-card.unlocked:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.12);
+  }
+
+  .badge-card.locked {
+    opacity: 0.72;
+    background: var(--bg-surface);
+    border-style: dashed;
+  }
+  .badge-card.locked:hover {
+    opacity: 0.92;
+    border-color: var(--border-light);
+  }
+
+  .badge-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .badge-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .badge-icon-box.amber { background: hsla(38, 92%, 58%, 0.14); color: var(--warning); }
+  .badge-icon-box.purple { background: var(--primary-glow); color: var(--primary); }
+  .badge-icon-box.blue { background: hsla(210, 84%, 60%, 0.14); color: hsl(210, 84%, 60%); }
+  .badge-icon-box.green { background: hsla(142, 71%, 45%, 0.12); color: var(--success); }
+  .badge-icon-box.locked { background: var(--bg-elevated); color: var(--text-muted); }
+
+  .badge-pill-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+  .badge-pill-status.unlocked {
+    background: hsla(142, 71%, 45%, 0.12);
+    color: var(--success);
+    border: 1px solid hsla(142, 71%, 45%, 0.28);
+  }
+  .badge-pill-status.locked {
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .badge-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .badge-title-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .badge-description-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .badge-custom {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.3px;
+  }
+  .badge-custom.badge-success {
+    background: hsla(142, 71%, 45%, 0.12);
+    color: var(--success);
+    border: 1px solid hsla(142, 71%, 45%, 0.28);
+  }
+
+  /* ── 7. Responsive Breakpoints ──────────────────── */
+  @media (max-width: 1080px) {
+    .profile-dashboard-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .stats-row {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .profile-hero-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .profile-hero-actions {
+      width: 100%;
+    }
+    .profile-hero-actions .btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 580px) {
+    .profile-identity {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .target-btn-group {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .badges-grid-container {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <script>
 let profileData = null;
 let currentTarget = 60;
 let currentAvatar = '🎓';
+
+// Badge Icon & Color Mapping for Professional SVG System
+const BADGE_ICONS = {
+  'first_quiz': { icon: 'trophy', color: 'amber' },
+  'streak_7': { icon: 'flame', color: 'amber' },
+  'streak_30': { icon: 'sparkles', color: 'purple' },
+  'wpm_40': { icon: 'keyboard', color: 'blue' },
+  'wpm_60': { icon: 'zap', color: 'purple' },
+  'questions_100': { icon: 'brain', color: 'blue' },
+  'coding_10': { icon: 'code-2', color: 'green' },
+  'communication_7': { icon: 'message-square', color: 'purple' },
+  'perfect_quiz': { icon: 'star', color: 'amber' },
+  'early_bird': { icon: 'sunrise', color: 'blue' },
+};
 
 async function loadProfile() {
   try {
     profileData = await apiCall('/api/profile/data');
     renderProfile(profileData);
   } catch (e) {
-    showToast('Could not load profile', 'error');
+    showToast('Could not load profile data', 'error');
   }
 }
 
@@ -105,90 +899,191 @@ function renderProfile(data) {
   const user = data.user;
   const lp = data.level_progress;
 
-  // Update avatar
-  document.getElementById('profile-avatar').textContent = user.avatar || '🎓';
+  // Avatar & Identity
   currentAvatar = user.avatar || '🎓';
+  const avatarEl = document.getElementById('profile-avatar');
+  if (avatarEl) avatarEl.textContent = currentAvatar;
 
-  // Stats
+  // Active state in avatar picker
+  document.querySelectorAll('.avatar-picker-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === currentAvatar);
+  });
+
+  // Name & Goal
   document.getElementById('profile-name').textContent = user.name;
-  const pTitle = document.getElementById('profile-title-text');
-  if (pTitle) pTitle.textContent = `${user.name}'s Profile`;
-  document.getElementById('profile-goal').textContent = user.goal;
+  document.getElementById('profile-goal').textContent = user.goal || 'No goal set yet. Click Edit Profile to set one.';
+  document.getElementById('profile-day').textContent = user.day_number || 1;
+  document.getElementById('profile-role-tag').textContent = `Level ${user.level} • ${user.current_level}`;
+
+  // Quick Stats
   document.getElementById('profile-streak').textContent = user.streak;
   document.getElementById('profile-xp').textContent = user.xp.toLocaleString();
-  document.getElementById('profile-level').textContent = user.level;
-  document.getElementById('profile-day').textContent = user.day_number;
+  document.getElementById('profile-level').textContent = `Level ${user.level}`;
+  document.getElementById('profile-level-name').textContent = user.current_level;
+  document.getElementById('profile-target-display').textContent = `${user.daily_target_minutes || 60}m`;
 
-  // Edit fields
+  // Edit Fields
   document.getElementById('edit-name').value = user.name;
-  document.getElementById('edit-goal').value = user.goal;
-  currentTarget = user.daily_target_minutes;
+  document.getElementById('edit-goal').value = user.goal || '';
+  currentTarget = user.daily_target_minutes || 60;
 
-  // Level progress
+  // Set active target button
+  document.querySelectorAll('.target-btn').forEach(btn => {
+    const val = parseInt(btn.getAttribute('data-target'));
+    btn.classList.toggle('active', val === currentTarget);
+  });
+
+  // Level Progression Section
+  const progressBadge = document.getElementById('progress-level-badge');
+  if (progressBadge) progressBadge.textContent = `Level ${lp.current_level}`;
+
   document.getElementById('level-progress-display').innerHTML = `
-    <div style="text-align:center;padding:16px;background:var(--gradient-primary);
-                border-radius:var(--radius-md);color:white;margin-bottom:16px">
-      <div style="font-size:36px;font-weight:900">Level ${lp.current_level}</div>
-      <div style="font-size:16px;opacity:0.8">${lp.level_name}</div>
+    <div class="level-hero-banner">
+      <div class="level-hero-left">
+        <div class="level-badge-pill">LV ${lp.current_level}</div>
+        <div>
+          <div class="level-title-large">${lp.level_name}</div>
+          <div class="level-sub-title">Next: Level ${lp.next_level} (${lp.next_level_name})</div>
+        </div>
+      </div>
+      <div class="level-xp-stat">
+        <div class="level-xp-num">${user.xp.toLocaleString()}</div>
+        <div class="level-xp-lbl">Total XP</div>
+      </div>
     </div>
-    <div class="flex items-center justify-between mb-8">
-      <span style="font-size:13px;color:var(--text-muted)">${lp.level_xp} / 500 XP</span>
-      <span style="font-size:13px;font-weight:600;color:var(--primary-light)">${lp.xp_to_next} XP to ${lp.next_level_name}</span>
-    </div>
-    <div class="progress-bar progress-bar-lg">
-      <div class="progress-fill" style="width:${lp.progress_percent}%"></div>
-    </div>
-    <div style="font-size:13px;color:var(--text-muted);text-align:center;margin-top:8px">
-      Total XP: ${user.xp.toLocaleString()}
-    </div>`;
 
-  // Badges
+    <div class="progress-meta-row">
+      <span>${lp.level_xp} / 500 XP in Level ${lp.current_level}</span>
+      <span style="color:var(--primary-light)">${lp.progress_percent}%</span>
+    </div>
+
+    <div class="progress-bar-custom mb-8">
+      <div class="progress-fill-custom" style="width: ${Math.min(100, Math.max(0, lp.progress_percent))}%"></div>
+    </div>
+
+    <div class="level-next-tip">
+      <i data-lucide="sparkles" style="width:15px;height:15px;color:var(--primary);flex-shrink:0;"></i>
+      <span>Earn <strong>${lp.xp_to_next} more XP</strong> to advance to <strong>Level ${lp.next_level} • ${lp.next_level_name}</strong></span>
+    </div>
+  `;
+
+  // Badges Grid
   const badgesGrid = document.getElementById('badges-grid');
-  badgesGrid.innerHTML = data.all_badges.map(b => `
-    <div style="padding:14px;background:${b.earned?'var(--bg-elevated)':'var(--bg-card)'};
-                border:1px solid ${b.earned?'var(--primary)':'var(--border)'};
-                border-radius:var(--radius-md);text-align:center;opacity:${b.earned?'1':'0.45'};
-                transition:all 0.2s" title="${b.description}">
-      <div style="font-size:28px;margin-bottom:6px">${b.icon}</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text-primary)">${b.name}</div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${b.description}</div>
-      ${b.earned ? '<div style="font-size:11px;color:var(--success);margin-top:4px">✓ Earned</div>'
-                 : '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">🔒 Locked</div>'}
-    </div>`).join('');
+  const allBadges = data.all_badges || [];
+  const earnedCount = allBadges.filter(b => b.earned).length;
+
+  document.getElementById('badges-unlocked-count').textContent = `${earnedCount} / ${allBadges.length} Unlocked`;
+
+  badgesGrid.innerHTML = allBadges.map(b => {
+    const meta = BADGE_ICONS[b.key] || { icon: 'award', color: 'purple' };
+    const isEarned = Boolean(b.earned);
+    const boxColorCls = isEarned ? meta.color : 'locked';
+    const iconName = isEarned ? meta.icon : 'lock';
+
+    return `
+      <div class="badge-card ${isEarned ? 'unlocked' : 'locked'}" title="${b.description}">
+        <div class="badge-card-top">
+          <div class="badge-icon-box ${boxColorCls}">
+            <i data-lucide="${iconName}" style="width:18px;height:18px"></i>
+          </div>
+          <span class="badge-pill-status ${isEarned ? 'unlocked' : 'locked'}">
+            ${isEarned ? '<i data-lucide="check" style="width:10px;height:10px"></i> Earned' : '<i data-lucide="lock" style="width:10px;height:10px"></i> Locked'}
+          </span>
+        </div>
+        <div class="badge-body">
+          <div class="badge-title-text">${b.name}</div>
+          <div class="badge-description-text">${b.description}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Re-initialize Lucide Icons
+  lucide.createIcons();
 }
 
 function setAvatar(emoji) {
   currentAvatar = emoji;
-  document.getElementById('profile-avatar').textContent = emoji;
-  document.querySelectorAll('.avatar-btn').forEach(b => {
-    b.style.borderColor = b.textContent === emoji ? 'var(--primary)' : 'transparent';
+  const avatarEl = document.getElementById('profile-avatar');
+  if (avatarEl) avatarEl.textContent = emoji;
+
+  document.querySelectorAll('.avatar-picker-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === emoji);
   });
+}
+
+function focusAvatarSelector() {
+  const picker = document.getElementById('avatarGrid');
+  if (picker) {
+    picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    picker.classList.add('animate-scale');
+    setTimeout(() => picker.classList.remove('animate-scale'), 500);
+  }
+}
+
+function scrollToEditProfile() {
+  const section = document.getElementById('editProfileSection');
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const nameInput = document.getElementById('edit-name');
+    if (nameInput) setTimeout(() => nameInput.focus(), 400);
+  }
 }
 
 function setTarget(val, btn) {
   currentTarget = val;
-  btn.closest('.toggle-group').querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
 
-async function saveProfile() {
+async function handleSaveProfile(event) {
+  event.preventDefault();
   const name = document.getElementById('edit-name').value.trim();
   const goal = document.getElementById('edit-goal').value.trim();
-  if (!name) { showToast('Name cannot be empty', 'warning'); return; }
+  const saveBtn = document.getElementById('saveProfileBtn');
+
+  if (!name) {
+    showToast('Please enter your name', 'warning');
+    return;
+  }
+
+  // Loading state
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = `<div class="spinner spinner-sm" style="width:14px;height:14px;border-width:2px;display:inline-block;margin-right:6px"></div> Saving...`;
 
   try {
     const data = await apiCall('/api/profile/update', 'POST', {
-      name, goal, daily_target_minutes: currentTarget, avatar: currentAvatar
+      name,
+      goal,
+      daily_target_minutes: currentTarget,
+      avatar: currentAvatar
     });
-    document.getElementById('profile-name').textContent = data.user.name;
-    document.getElementById('profile-goal').textContent = data.user.goal;
-    document.getElementById('sidebar-username').textContent = data.user.name;
-    showToast('Profile saved! ✨', 'success');
+
+    if (data.success && data.user) {
+      document.getElementById('profile-name').textContent = data.user.name;
+      document.getElementById('profile-goal').textContent = data.user.goal || '';
+      document.getElementById('profile-target-display').textContent = `${data.user.daily_target_minutes}m`;
+      
+      const sideUsername = document.getElementById('sidebar-username');
+      if (sideUsername) sideUsername.textContent = data.user.name;
+      const sideAvatar = document.getElementById('sidebar-avatar');
+      if (sideAvatar) sideAvatar.textContent = data.user.avatar || '🎓';
+
+      showToast('Profile updated successfully! ✨', 'success');
+      loadProfile();
+    } else {
+      throw new Error(data.error || 'Failed to update profile');
+    }
   } catch (e) {
-    showToast(e.message, 'error');
+    showToast(e.message || 'Error updating profile', 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `<i data-lucide="save" style="width:16px;height:16px"></i> Save Changes`;
+    lucide.createIcons();
   }
 }
 
+// Initial Load
 loadProfile();
 </script>
 {% endblock %}
