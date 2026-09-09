@@ -27,74 +27,85 @@
 
       <!-- Column 1: Candidate Resume -->
       <div class="ats-col">
-        <div class="section-badge">
-          <i data-lucide="file-text" style="width:16px;height:16px"></i> 1. Candidate Resume
-        </div>
-
-        <div class="tabs" style="margin-bottom:12px">
-          <button type="button" class="tab active" id="tabUpload" onclick="setResumeInputMode('upload')">
-            <i data-lucide="upload-cloud" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Upload File (.pdf, .docx, .txt)
-          </button>
-          <button type="button" class="tab" id="tabPaste" onclick="setResumeInputMode('paste')">
-            <i data-lucide="edit-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Paste Text
-          </button>
-        </div>
-
-        <!-- File Upload Area -->
-        <div id="fileUploadContainer" class="dropzone" onclick="document.getElementById('resumeFileInput').click()">
-          <input type="file" id="resumeFileInput" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelected(event)" />
-          <div class="dropzone-content" id="dropzoneContent">
-            <div class="dropzone-icon">
-              <i data-lucide="file-up" style="width:36px;height:36px;color:var(--primary)"></i>
-            </div>
-            <p style="font-weight:600;font-size:14px;margin-bottom:4px;color:var(--text-primary)">
-              Click or drag & drop resume file here
-            </p>
-            <p style="font-size:12px;color:var(--text-muted)">
-              Supports PDF, DOCX, or TXT (Max 10MB)
-            </p>
+        <div class="ats-col-header">
+          <div class="section-badge">
+            <i data-lucide="file-text" style="width:16px;height:16px"></i> 1. Candidate Resume
           </div>
-          <div id="fileSelectedBadge" style="display:none;align-items:center;justify-content:center;gap:10px;padding:12px;">
-            <i data-lucide="file-check" style="width:20px;height:20px;color:var(--success)"></i>
-            <span id="selectedFileName" style="font-weight:600;font-size:13px;color:var(--text-primary)"></span>
-            <button type="button" class="btn-icon" onclick="clearSelectedFile(event)" style="background:none;border:none;color:var(--danger);cursor:pointer;" title="Remove file">
-              <i data-lucide="x" style="width:16px;height:16px"></i>
+        </div>
+
+        <div class="ats-toolbar">
+          <div class="ats-tabs">
+            <button type="button" class="tab active" id="tabUpload" onclick="setResumeInputMode('upload')">
+              <i data-lucide="upload-cloud" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Upload File (.pdf, .docx, .txt)
+            </button>
+            <button type="button" class="tab" id="tabPaste" onclick="setResumeInputMode('paste')">
+              <i data-lucide="edit-3" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px"></i> Paste Text
             </button>
           </div>
         </div>
 
-        <!-- Text Paste Area (Hidden by default) -->
-        <div id="textPasteContainer" style="display:none;">
-          <textarea id="resumeTextInput" class="form-control" rows="9" placeholder="Paste full resume text here (Education, Experience, Skills, Projects, Certifications)..." style="font-size:13px;line-height:1.5;resize:vertical;"></textarea>
+        <!-- Resume Input Area -->
+        <div class="ats-input-area">
+          <!-- File Upload Area -->
+          <div id="fileUploadContainer" class="dropzone" onclick="document.getElementById('resumeFileInput').click()">
+            <input type="file" id="resumeFileInput" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelected(event)" />
+            <div class="dropzone-content" id="dropzoneContent">
+              <div class="dropzone-icon">
+                <i data-lucide="file-up" style="width:36px;height:36px;color:var(--primary)"></i>
+              </div>
+              <p style="font-weight:600;font-size:14px;margin-bottom:4px;color:var(--text-primary)">
+                Click or drag & drop resume file here
+              </p>
+              <p style="font-size:12px;color:var(--text-muted)">
+                Supports PDF, DOCX, or TXT (Max 10MB)
+              </p>
+            </div>
+            <div id="fileSelectedBadge" style="display:none;align-items:center;justify-content:center;gap:10px;padding:12px;">
+              <i data-lucide="file-check" style="width:20px;height:20px;color:var(--success)"></i>
+              <span id="selectedFileName" style="font-weight:600;font-size:13px;color:var(--text-primary)"></span>
+              <button type="button" class="btn-icon" onclick="clearSelectedFile(event)" style="background:none;border:none;color:var(--danger);cursor:pointer;" title="Remove file">
+                <i data-lucide="x" style="width:16px;height:16px"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Text Paste Area (Hidden by default) -->
+          <div id="textPasteContainer" style="display:none;height:100%;flex:1;">
+            <textarea id="resumeTextInput" class="form-control ats-textarea" placeholder="Paste full resume text here (Education, Experience, Skills, Projects, Certifications)..." style="font-size:13px;line-height:1.5;resize:vertical;"></textarea>
+          </div>
         </div>
       </div>
 
       <!-- Column 2: Target Job Description -->
       <div class="ats-col">
-        <div class="section-badge">
-          <i data-lucide="briefcase" style="width:16px;height:16px"></i> 2. Target Job Description
+        <div class="ats-col-header">
+          <div class="section-badge">
+            <i data-lucide="briefcase" style="width:16px;height:16px"></i> 2. Target Job Description
+          </div>
         </div>
 
         <!-- Quick Presets / Target Role Selection -->
-        <div style="margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px">
-            Quick Fill Job Presets:
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px" id="presetChipsContainer">
-            {% for preset in presets %}
-            <button type="button" class="preset-chip" id="preset-btn-{{ preset.id }}" onclick="applyPreset('{{ preset.id }}')">
-              <i data-lucide="{{ preset.icon }}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:2px"></i> {{ preset.title }}
-            </button>
-            {% endfor %}
+        <div class="ats-toolbar">
+          <div class="ats-presets-row">
+            <span class="preset-label">Quick Fill Job Presets:</span>
+            <div class="preset-chips" id="presetChipsContainer">
+              {% for preset in presets %}
+              <button type="button" class="preset-chip" id="preset-btn-{{ preset.id }}" onclick="applyPreset('{{ preset.id }}')">
+                <i data-lucide="{{ preset.icon }}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:2px"></i> {{ preset.title }}
+              </button>
+              {% endfor %}
+            </div>
           </div>
           <input type="hidden" id="targetRoleInput" name="target_role" value="" />
         </div>
 
-        <!-- JD Textarea -->
-        <div style="position:relative;">
-          <textarea id="jdInput" class="form-control" rows="9" placeholder="Paste the complete job description, requirements, responsibilities, and qualifications here..." required style="font-size:13px;line-height:1.5;resize:vertical;"></textarea>
-          <div id="jdWordCount" style="position:absolute;bottom:8px;right:12px;font-size:11px;color:var(--text-muted);pointer-events:none;">
-            0 words
+        <!-- JD Textarea Input Area -->
+        <div class="ats-input-area">
+          <div style="position:relative;height:100%;flex:1;display:flex;flex-direction:column;">
+            <textarea id="jdInput" class="form-control ats-textarea" placeholder="Paste the complete job description, requirements, responsibilities, and qualifications here..." required style="font-size:13px;line-height:1.5;resize:vertical;"></textarea>
+            <div id="jdWordCount" style="position:absolute;bottom:8px;right:12px;font-size:11px;color:var(--text-muted);pointer-events:none;background:var(--bg-elevated);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">
+              0 words
+            </div>
           </div>
         </div>
       </div>
@@ -320,26 +331,110 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
+    align-items: stretch;
   }
   @media (max-width: 900px) {
     .ats-grid {
       grid-template-columns: 1fr;
+      gap: 20px;
     }
   }
 
   .ats-col {
     display: flex;
     flex-direction: column;
+    height: 100%;
+  }
+
+  .ats-col-header {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+    margin-bottom: 12px;
   }
 
   .section-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
+    gap: 8px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0;
+  }
+
+  .ats-toolbar {
+    min-height: 38px;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+  }
+
+  .ats-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-elevated);
+    padding: 3px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+
+  .ats-tabs .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: var(--font);
+    white-space: nowrap;
+    line-height: 1.3;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .ats-tabs .tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+  }
+
+  .ats-tabs .tab.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .ats-presets-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .preset-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .preset-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
   }
 
   .preset-chip {
@@ -347,11 +442,15 @@
     border: 1px solid var(--border);
     color: var(--text-secondary);
     border-radius: var(--radius-full);
-    padding: 4px 10px;
+    padding: 5px 11px;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.3;
   }
   .preset-chip:hover {
     background: var(--primary-glow);
@@ -365,29 +464,64 @@
     box-shadow: var(--shadow-primary);
   }
 
+  .ats-input-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+  }
+
   .dropzone {
+    flex: 1;
     border: 2px dashed var(--border);
     border-radius: var(--radius-md);
-    padding: 32px 16px;
+    padding: 24px 16px;
     text-align: center;
     cursor: pointer;
     background: var(--bg-elevated);
     transition: all var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
   }
   .dropzone:hover {
     border-color: var(--primary);
     background: var(--bg-hover);
   }
 
+  .dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
   .dropzone-icon {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     background: var(--primary-glow);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 12px;
+    margin: 0 auto 10px;
+  }
+
+  .ats-textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 220px;
+    height: 100%;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    padding: 12px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-sizing: border-box;
   }
 
   .results-grid {
@@ -787,13 +921,13 @@ function setResumeInputMode(mode) {
   if (mode === 'upload') {
     tabUpload.classList.add('active');
     tabPaste.classList.remove('active');
-    fileContainer.style.display = 'block';
+    fileContainer.style.display = 'flex';
     textContainer.style.display = 'none';
   } else {
     tabPaste.classList.add('active');
     tabUpload.classList.remove('active');
     fileContainer.style.display = 'none';
-    textContainer.style.display = 'block';
+    textContainer.style.display = 'flex';
   }
 }
 
@@ -813,7 +947,7 @@ function clearSelectedFile(event) {
   selectedFile = null;
   document.getElementById('resumeFileInput').value = '';
   document.getElementById('fileSelectedBadge').style.display = 'none';
-  document.getElementById('dropzoneContent').style.display = 'block';
+  document.getElementById('dropzoneContent').style.display = 'flex';
 }
 
 function applyPreset(presetId) {
